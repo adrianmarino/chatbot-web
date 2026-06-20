@@ -153,23 +153,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
+  const showHelp = (e: React.MouseEvent, title: string, explanation: string, lower: string, higher: string) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setHoverHelp({
+      title,
+      explanation,
+      lower,
+      higher,
+      x: rect.right + 12,
+      y: rect.top + rect.height / 2,
+    });
+  };
+
+  const hideHelp = () => {
+    setHoverHelp(null);
+  };
+
   // Helper to render interactive info triggers with fixed tooltip behavior
   const renderInfoTrigger = (title: string, explanation: string, lower: string, higher: string) => (
     <span
-      onMouseEnter={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        setHoverHelp({
-          title,
-          explanation,
-          lower,
-          higher,
-          x: rect.right + 12,
-          y: rect.top + rect.height / 2,
-        });
-      }}
-      onMouseLeave={() => {
-        setHoverHelp(null);
-      }}
+      onMouseEnter={(e) => showHelp(e, title, explanation, lower, higher)}
+      onMouseLeave={hideHelp}
       className="ml-1.5 p-0.5 rounded text-slate-500 hover:text-violet-400 cursor-help transition inline-block align-middle"
     >
       <Info className="w-3.5 h-3.5" />
@@ -203,6 +207,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
             <button
               onClick={() => setIsModalOpen(true)}
+              onMouseEnter={(e) => showHelp(e, "Registrar Nuevo Perfil", "Permite crear un nuevo usuario con preferencias de géneros y años de lanzamiento específicos en MongoDB para resolver el Inicio Frío (Cold-Start).", "Inicio frío absoluto por falta de datos.", "Ajuste preciso de las restricciones e intenciones del usuario.")}
+              onMouseLeave={hideHelp}
               className="p-1 text-slate-400 hover:text-violet-400 hover:bg-slate-800 rounded-lg transition"
               title="Create new profile"
             >
@@ -245,6 +251,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           onDeleteProfile(profile.email);
                         }
                       }}
+                      onMouseEnter={(e) => showHelp(e, "Eliminar Perfil", "Purga de forma permanente este perfil de MongoDB, borrando todo su historial conversacional y sus calificaciones registradas.", "Se conserva el perfil en la base de datos.", "Wipe permanente del usuario y sus datos de skynet.")}
+                      onMouseLeave={hideHelp}
                       className="opacity-0 group-hover:opacity-100 p-1 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition text-slate-500"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -260,14 +268,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="border-t border-slate-800 pt-6 space-y-4">
           <div className="flex items-center space-x-2 text-slate-400 text-xs font-semibold uppercase tracking-wider">
             <Sparkles className="w-4 h-4 text-indigo-400" />
-            <span>LLM Reasoning Model</span>
+            <span
+              onMouseEnter={(e) => showHelp(e, "Modelo de Inferencia LLM", "Determina el Large Language Model (local en Ollama) que actuará como 'Juez de Contexto' jerarquizando y eligiendo las mejores recomendaciones.", "Gemma/Llama: Rápidos y estructurados.", "DeepSeek-R1: Razonamiento deductivo y lógico extenso.")}
+              onMouseLeave={hideHelp}
+              className="cursor-help hover:text-indigo-400 transition"
+            >
+              LLM Reasoning Model
+            </span>
           </div>
 
           <div className="relative text-left">
             <select
               value={selectedModel}
               onChange={(e) => onSelectModel(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500 transition appearance-none cursor-pointer"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500 transition appearance-none cursor-pointer pr-10"
             >
               {models.map((model) => (
                 <option key={model} value={model}>
@@ -275,15 +289,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </option>
               ))}
             </select>
-            <div className="absolute right-3 top-3 pointer-events-none text-slate-400 border-l border-slate-800 pl-2">
-              <span className="text-[10px]">▼</span>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 border-l border-slate-800 pl-2 flex items-center h-4">
+              <span className="text-[9px]">▼</span>
             </div>
           </div>
         </div>
 
         {/* Dynamic profile metadata summary */}
         {activeProfile && (
-          <div className="bg-slate-950/40 rounded-xl p-3 border border-slate-800/80 text-left text-xs space-y-2">
+          <div
+            onMouseEnter={(e) => showHelp(e, "Configuración del Perfil Activo", "Muestra los filtros duros (décadas y géneros preferidos) definidos en el perfil que guían la búsqueda semántica vectorizada.", "Consulta abierta sin sesgo de preferencias.", "Recomendaciones acotadas a tu perfil específico.")}
+            onMouseLeave={hideHelp}
+            className="bg-slate-950/40 rounded-xl p-3 border border-slate-800/80 text-left text-xs space-y-2 cursor-help hover:border-slate-700 transition"
+          >
             <p className="font-semibold text-slate-400 border-b border-slate-800 pb-1 mb-1">
               Active Preferences:
             </p>
@@ -597,7 +615,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Modal - Create User Profile */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-left">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-left text-slate-100">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div className="p-6 border-b border-slate-800 bg-gradient-to-r from-violet-600/10 to-transparent flex justify-between items-center">
               <h3 className="text-lg font-bold text-slate-100 flex items-center space-x-2">

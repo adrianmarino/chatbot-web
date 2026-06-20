@@ -14,8 +14,7 @@ interface HoverHelp {
   explanation: string;
   lower: string;
   higher: string;
-  x: number;
-  y: number;
+  rect: DOMRect;
 }
 
 const GRADIENTS = [
@@ -62,13 +61,41 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       explanation,
       lower,
       higher,
-      x: rect.left - 332, // Left position relative to card
-      y: rect.top + rect.height / 2,
+      rect,
     });
   };
 
   const hideHelp = () => {
     setHoverHelp(null);
+  };
+
+  // Viewport Collision-Aware Tooltip Positioning Algorithm
+  const calculateTooltipStyles = (rect: DOMRect | null) => {
+    if (!rect) return {};
+
+    const tooltipWidth = 320;
+    const tooltipHeight = 250; // estimated safe height
+    const margin = 12;
+
+    // 1. Horizontal Placement (Prefer right, fallback to left)
+    let left = rect.right + margin;
+    if (left + tooltipWidth > window.innerWidth) {
+      left = rect.left - tooltipWidth - margin;
+    }
+    left = Math.max(margin, left);
+
+    // 2. Vertical Placement (Center to element, clamp inside viewport)
+    let top = rect.top + rect.height / 2 - tooltipHeight / 2;
+    top = Math.max(margin, top);
+    top = Math.min(top, window.innerHeight - tooltipHeight - margin);
+
+    return {
+      position: 'fixed' as const,
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${tooltipWidth}px`,
+      maxHeight: `${tooltipHeight}px`,
+    };
   };
 
   // Convert similarity score to colored percentage badge
@@ -254,21 +281,16 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       {/* Viewport-level Hover Tooltip */}
       {hoverHelp && (
         <div
-          style={{
-            position: 'fixed',
-            left: `${hoverHelp.x}px`,
-            top: `${hoverHelp.y}px`,
-            transform: 'translateY(-50%)',
-          }}
-          className="w-85 p-4 bg-slate-950/95 border border-slate-800 text-[11px] text-slate-300 rounded-2xl shadow-2xl space-y-3 z-50 pointer-events-none animate-in fade-in zoom-in-95 duration-100 font-sans leading-relaxed backdrop-blur-sm"
+          style={calculateTooltipStyles(hoverHelp.rect)}
+          className="bg-slate-950/95 border border-slate-800 text-[11px] text-slate-300 rounded-2xl shadow-2xl space-y-3 z-50 pointer-events-none animate-in fade-in zoom-in-95 duration-100 font-sans leading-relaxed backdrop-blur-sm p-4 overflow-y-auto"
         >
-          <div className="font-bold text-slate-100 flex items-center space-x-1.5 border-b border-slate-800 pb-1.5">
+          <div className="font-bold text-slate-100 flex items-center space-x-1.5 border-b border-slate-800 pb-1.5 shrink-0">
             <span>💡</span>
             <span>{hoverHelp.title}</span>
           </div>
-          <p className="font-medium text-slate-300">{hoverHelp.explanation}</p>
+          <p className="font-medium text-slate-300 shrink-0">{hoverHelp.explanation}</p>
           
-          <div className="grid grid-cols-2 gap-2 text-[10px] pt-2 border-t border-slate-900 font-sans">
+          <div className="grid grid-cols-2 gap-2 text-[10px] pt-2 border-t border-slate-900 font-sans shrink-0">
             <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-850/40">
               <span className="font-bold text-indigo-400 block mb-0.5 uppercase tracking-wider text-[8px]">Valores Bajos:</span>
               <span className="text-slate-400 font-normal">{hoverHelp.lower}</span>

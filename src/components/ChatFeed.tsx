@@ -36,8 +36,7 @@ interface HoverHelp {
   explanation: string;
   lower: string;
   higher: string;
-  x: number;
-  y: number;
+  rect: DOMRect;
 }
 
 export const ChatFeed: React.FC<ChatFeedProps> = ({
@@ -152,6 +151,35 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
     });
   };
 
+  // Viewport Collision-Aware Tooltip Positioning Algorithm
+  const calculateTooltipStyles = (rect: DOMRect | null) => {
+    if (!rect) return {};
+
+    const tooltipWidth = 320;
+    const tooltipHeight = 250; // slightly shorter for chat buttons
+    const margin = 12;
+
+    // 1. Horizontal Placement (Prefer right, fallback to left)
+    let left = rect.right + margin;
+    if (left + tooltipWidth > window.innerWidth) {
+      left = rect.left - tooltipWidth - margin;
+    }
+    left = Math.max(margin, left);
+
+    // 2. Vertical Placement (Center to element, clamp inside viewport)
+    let top = rect.top + rect.height / 2 - tooltipHeight / 2;
+    top = Math.max(margin, top);
+    top = Math.min(top, window.innerHeight - tooltipHeight - margin);
+
+    return {
+      position: 'fixed' as const,
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${tooltipWidth}px`,
+      maxHeight: `${tooltipHeight}px`,
+    };
+  };
+
   return (
     <div className="flex-1 flex flex-col bg-slate-950 h-full relative overflow-hidden">
       {/* Feed Header */}
@@ -167,8 +195,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                 explanation: 'Oculta o expande la barra lateral de perfiles. Colapsarla maximiza el área de visualización del chat, dándote espacio de pantalla completa (Workbench) para evaluar las películas e insights side-by-side.',
                 lower: 'Barra lateral fija de 320px visible.',
                 higher: 'Pantalla completa; chat e insights comparten la totalidad del monitor.',
-                x: rect.right + 12,
-                y: rect.top + rect.height / 2,
+                rect,
               });
             }}
             onMouseLeave={() => setHoverHelp(null)}
@@ -205,8 +232,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                 explanation: 'Borra permanentemente el historial conversacional (memoria a corto plazo) de este usuario de MongoDB. Esto evita que los temas y películas hablados anteriormente sesguen tus nuevas consultas.',
                 lower: 'Se mantiene el hilo y contexto previo.',
                 higher: 'Wipe total; el LLM te atenderá sin memoria previa, libre de sesgos contextuales.',
-                x: rect.left - 332, // Render to the left of the button since it's on the right edge
-                y: rect.top + rect.height / 2,
+                rect,
               });
             }}
             onMouseLeave={() => setHoverHelp(null)}
@@ -385,21 +411,16 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
       {/* Global Viewport-Level Draggable/Floating Hover Tooltip (Fixed position, 100% immune to scroll clippings) */}
       {hoverHelp && (
         <div
-          style={{
-            position: 'fixed',
-            left: `${hoverHelp.x}px`,
-            top: `${hoverHelp.y}px`,
-            transform: 'translateY(-50%)',
-          }}
-          className="w-80 p-4 bg-slate-950/95 border border-slate-800 text-[11px] text-slate-300 rounded-2xl shadow-2xl space-y-3 z-50 pointer-events-none animate-in fade-in zoom-in-95 duration-100 font-sans leading-relaxed backdrop-blur-sm"
+          style={calculateTooltipStyles(hoverHelp.rect)}
+          className="bg-slate-950/95 border border-slate-800 text-[11px] text-slate-300 rounded-2xl shadow-2xl space-y-3 z-50 pointer-events-none animate-in fade-in zoom-in-95 duration-100 font-sans leading-relaxed backdrop-blur-sm p-4 overflow-y-auto"
         >
-          <div className="font-bold text-slate-100 flex items-center space-x-1.5 border-b border-slate-800 pb-1.5">
+          <div className="font-bold text-slate-100 flex items-center space-x-1.5 border-b border-slate-800 pb-1.5 shrink-0">
             <span>💡</span>
             <span>{hoverHelp.title}</span>
           </div>
-          <p className="font-medium text-slate-300">{hoverHelp.explanation}</p>
+          <p className="font-medium text-slate-300 shrink-0">{hoverHelp.explanation}</p>
           
-          <div className="grid grid-cols-2 gap-2 text-[10px] pt-2 border-t border-slate-900 font-sans">
+          <div className="grid grid-cols-2 gap-2 text-[10px] pt-2 border-t border-slate-900 font-sans shrink-0">
             <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-850/40">
               <span className="font-bold text-indigo-400 block mb-0.5 uppercase tracking-wider text-[8px]">Valores Bajos:</span>
               <span className="text-slate-400 font-normal">{hoverHelp.lower}</span>

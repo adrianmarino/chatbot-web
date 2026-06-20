@@ -10,6 +10,7 @@ export interface ChatMessage {
   timestamp: Date;
   status?: 'sending' | 'success' | 'error';
   recommendations?: Recommendation[];
+  queryText?: string;
 }
 
 interface ChatFeedProps {
@@ -324,6 +325,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                                 movies={msg.recommendations}
                                 onRateMovie={onRateMovie}
                                 ratedMovies={ratedMovies}
+                                onRegenerate={msg.queryText ? () => onSendMessage(msg.queryText!) : undefined}
                               />
                             )}
                           </div>
@@ -421,11 +423,11 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           <p className="font-medium text-slate-300 shrink-0">{hoverHelp.explanation}</p>
           
           <div className="grid grid-cols-2 gap-2 text-[10px] pt-2 border-t border-slate-900 font-sans shrink-0">
-            <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-850/40">
+            <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-855/40">
               <span className="font-bold text-indigo-400 block mb-0.5 uppercase tracking-wider text-[8px]">Valores Bajos:</span>
               <span className="text-slate-400 font-normal">{hoverHelp.lower}</span>
             </div>
-            <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-850/40">
+            <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-855/40">
               <span className="font-bold text-violet-400 block mb-0.5 uppercase tracking-wider text-[8px]">Valores Altos:</span>
               <span className="text-slate-400 font-normal">{hoverHelp.higher}</span>
             </div>

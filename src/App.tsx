@@ -231,6 +231,7 @@ function App() {
           text: '', // Removed generic response text, rendering recommendations grid directly!
           timestamp: new Date(),
           recommendations: response.items, // Embed recommendations directly into this chat message
+          queryText: text, // Embed the exact prompt query text so it can be re-sent on demand!
         },
       ]);
 

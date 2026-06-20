@@ -36,12 +36,14 @@ export interface RecommendationSettings {
   include_metadata?: boolean;
   rag?: {
     candidates_limit?: number;
+    llm_response_limit?: number;
     recommendations_limit?: number;
     similar_items_augmentation_limit?: number;
     not_seen?: boolean;
   };
   collaborative_filtering?: {
     candidates_limit?: number;
+    llm_response_limit?: number;
     recommendations_limit?: number;
     similar_items_augmentation_limit?: number;
     not_seen?: boolean;

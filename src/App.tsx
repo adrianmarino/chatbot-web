@@ -208,13 +208,15 @@ function App() {
           include_metadata: includeMetadata,
           rag: {
             candidates_limit: ragCandidates,
-            recommendations_limit: ragRecommendations,
+            llm_response_limit: ragRecommendations,       // Mapped to change prompt text & break cache!
+            recommendations_limit: ragRecommendations,    // Truncates response in factory
             similar_items_augmentation_limit: ragAugmentation,
             not_seen: excludeSeen,
           },
           collaborative_filtering: {
             candidates_limit: cfCandidates,
-            recommendations_limit: cfRecommendations,
+            llm_response_limit: cfRecommendations,        // Mapped to change prompt text & break cache!
+            recommendations_limit: cfRecommendations,     // Truncates response in factory
             similar_items_augmentation_limit: cfAugmentation,
             not_seen: excludeSeen,
             k_sim_users: cfKUsers,

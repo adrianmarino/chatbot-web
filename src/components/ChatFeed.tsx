@@ -52,6 +52,92 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
     setInputText('');
   };
 
+  // High-fidelity Lightweight Markdown Renderer
+  const renderFormattedText = (text: string) => {
+    const lines = text.split('\n');
+    return lines.map((line, idx) => {
+      // Check if line is a bullet/numbered list item
+      const listMatch = line.match(/^(\s*)([-*]|\d+\.)\s+(.*)/);
+      
+      const applyFormatting = (nodes: React.ReactNode[]): React.ReactNode[] => {
+        let result = [...nodes];
+        
+        // Pass 1: Bold (**)
+        let temp: React.ReactNode[] = [];
+        result.forEach(node => {
+          if (typeof node !== 'string') {
+            temp.push(node);
+            return;
+          }
+          const boldRegex = /\*\*(.*?)\*\*/g;
+          let lastIndex = 0;
+          let match;
+          while ((match = boldRegex.exec(node)) !== null) {
+            if (match.index > lastIndex) {
+              temp.push(node.substring(lastIndex, match.index));
+            }
+            temp.push(<strong key={`bold-${match.index}`} className="font-bold text-slate-100">{match[1]}</strong>);
+            lastIndex = boldRegex.lastIndex;
+          }
+          if (lastIndex < node.length) {
+            temp.push(node.substring(lastIndex));
+          }
+        });
+        result = temp;
+        
+        // Pass 2: Italic (*)
+        temp = [];
+        result.forEach(node => {
+          if (typeof node !== 'string') {
+            temp.push(node);
+            return;
+          }
+          const italicRegex = /\*(.*?)\*/g;
+          let lastIndex = 0;
+          let match;
+          while ((match = italicRegex.exec(node)) !== null) {
+            if (match.index > lastIndex) {
+              temp.push(node.substring(lastIndex, match.index));
+            }
+            temp.push(<em key={`italic-${match.index}`} className="italic text-slate-300">{match[1]}</em>);
+            lastIndex = italicRegex.lastIndex;
+          }
+          if (lastIndex < node.length) {
+            temp.push(node.substring(lastIndex));
+          }
+        });
+        result = temp;
+        
+        return result;
+      };
+
+      if (listMatch) {
+        const indent = listMatch[1].length * 4;
+        const bullet = listMatch[2];
+        const content = listMatch[3];
+        const formattedContent = applyFormatting([content]);
+        
+        return (
+          <div key={idx} className="flex items-start py-1" style={{ paddingLeft: `${indent}px` }}>
+            <span className="text-violet-400 font-bold mr-2 select-none shrink-0">{bullet}</span>
+            <span className="flex-1">{formattedContent}</span>
+          </div>
+        );
+      }
+
+      if (line.trim() === '') {
+        return <div key={idx} className="h-2" />;
+      }
+
+      const formattedLine = applyFormatting([line]);
+      return (
+        <p key={idx} className="mb-1 last:mb-0 leading-relaxed">
+          {formattedLine}
+        </p>
+      );
+    });
+  };
+
   return (
     <div className="flex-1 flex flex-col bg-slate-950 h-full relative overflow-hidden">
       {/* Feed Header */}
@@ -128,7 +214,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                 <div key={msg.id} className="space-y-4">
                   {/* Chat Bubble Row */}
                   <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-in fade-in duration-200`}>
-                    <div className={`flex items-start space-x-3 max-w-[85%] ${isUser ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
+                    <div className={`flex items-start space-x-3 w-full max-w-[85%] ${isUser ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
                       {/* Avatar */}
                       <div
                         className={`p-2.5 rounded-xl border shrink-0 ${
@@ -145,10 +231,14 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                         className={`rounded-2xl px-4 py-3 text-sm text-left shadow-lg ${
                           isUser
                             ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-medium shadow-indigo-500/5'
-                            : 'bg-slate-900 border border-slate-800/80 text-slate-200 leading-relaxed shadow-slate-950/20'
+                            : 'bg-slate-900 border border-slate-800/80 text-slate-200 leading-relaxed shadow-slate-950/20 w-full'
                         }`}
                       >
-                        {msg.text}
+                        {isUser ? (
+                          msg.text
+                        ) : (
+                          <div className="space-y-1">{renderFormattedText(msg.text)}</div>
+                        )}
                         <span className="block text-[10px] text-right mt-1.5 opacity-50 font-medium">
                           {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>

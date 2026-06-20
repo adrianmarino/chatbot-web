@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter, Sliders, Database, Users } from 'lucide-react';
+import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter, Sliders, Database, Users, Info } from 'lucide-react';
 import type { UserProfile } from '../services/api';
 
 interface SidebarProps {
@@ -142,6 +142,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
       setIsSubmitting(false);
     }
   };
+
+  // Helper to render interactive Tailwind tooltips
+  const renderTooltip = (title: string, desc: string) => (
+    <div className="relative group inline-block ml-1.5 align-middle select-none">
+      <Info className="w-3.5 h-3.5 text-slate-500 hover:text-violet-400 cursor-help transition" />
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 w-64 p-3 bg-slate-950 border border-slate-800 text-[11px] text-slate-300 rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 z-50 normal-case leading-relaxed font-sans font-normal">
+        <div className="font-bold text-slate-100 mb-1 flex items-center space-x-1 border-b border-slate-800 pb-1">
+          <span>💡</span>
+          <span>{title}</span>
+        </div>
+        {desc}
+      </div>
+    </div>
+  );
 
   return (
     <aside className="w-80 bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col h-screen overflow-hidden shrink-0">
@@ -296,6 +310,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <label className="flex items-center justify-between cursor-pointer group">
                 <span className="text-xs text-slate-400 group-hover:text-slate-200 transition">
                   Include RAG Metadata
+                  {renderTooltip("RAG Metadata", "Incluye métricas de similitud y logs de ejecución detallados en la respuesta, vitales para auditar las recomendaciones.")}
                 </span>
                 <input
                   type="checkbox"
@@ -308,6 +323,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <label className="flex items-center justify-between cursor-pointer group">
                 <span className="text-xs text-slate-400 group-hover:text-slate-200 transition">
                   Filter out Seen Movies
+                  {renderTooltip("Filtrar Vistas", "Evita recomendar películas que el usuario ya ha calificado o visto, garantizando el descubrimiento de nuevo contenido.")}
                 </span>
                 <input
                   type="checkbox"
@@ -319,8 +335,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               {/* LLM Retry slider */}
               <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">LLM Max Retries</span>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-400">
+                    LLM Max Retries
+                    {renderTooltip("Límite de Reintentos", "Número de reintentos en caso de que el LLM falle o devuelva una respuesta mal estructurada. Asegura robustez.")}
+                  </span>
                   <span className="text-violet-400 font-bold">{retry}</span>
                 </div>
                 <input
@@ -342,8 +361,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </span>
 
               <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">Candidates Retrieval Limit</span>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-400">
+                    Candidates Retrieval Limit
+                    {renderTooltip("Límite de Candidatos", "Límite de películas iniciales que la base de datos vectorial (ChromaDB) recupera para pasarlas al LLM como contexto.")}
+                  </span>
                   <span className="text-indigo-400 font-bold">{ragCandidates}</span>
                 </div>
                 <input
@@ -358,8 +380,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
 
               <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">LLM Recommendation Limit</span>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-400">
+                    LLM Recommendation Limit
+                    {renderTooltip("Límite LLM", "Límite máximo de películas recomendadas que el LLM puede seleccionar e incluir en la respuesta final.")}
+                  </span>
                   <span className="text-indigo-400 font-bold">{ragRecommendations}</span>
                 </div>
                 <input
@@ -373,8 +398,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
 
               <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">Diversity Augmentation</span>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-400">
+                    Diversity Augmentation
+                    {renderTooltip("Aumento de Diversidad", "Cantidad de películas similares que el sistema RAG acoplará automáticamente al final para garantizar un catálogo diverso.")}
+                  </span>
                   <span className="text-indigo-400 font-bold">{ragAugmentation}</span>
                 </div>
                 <input
@@ -396,8 +424,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </span>
 
               <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">CF Candidate Limit</span>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-400">
+                    CF Candidate Limit
+                    {renderTooltip("Candidatos CF", "Número máximo de candidatos que se extraen basados en similitudes con otros usuarios en el filtrado colaborativo.")}
+                  </span>
                   <span className="text-emerald-400 font-bold">{cfCandidates}</span>
                 </div>
                 <input
@@ -412,8 +443,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
 
               <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">CF LLM Recommendation Limit</span>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-400">
+                    CF LLM Recommendation Limit
+                    {renderTooltip("Límite LLM CF", "Límite máximo de películas finales elegidas por el LLM a partir del catálogo colaborativo.")}
+                  </span>
                   <span className="text-emerald-400 font-bold">{cfRecommendations}</span>
                 </div>
                 <input
@@ -427,8 +461,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
 
               <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">CF Diversity Augmentation</span>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-400">
+                    CF Diversity Augmentation
+                    {renderTooltip("Aumento CF", "Películas similares acopladas al resultado colaborativo final para incentivar el descubrimiento.")}
+                  </span>
                   <span className="text-emerald-400 font-bold">{cfAugmentation}</span>
                 </div>
                 <input
@@ -442,8 +479,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
 
               <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">K-Nearest Neighbors</span>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-400">
+                    K-Nearest Neighbors
+                    {renderTooltip("Vecinos Cercanos (k)", "Cantidad de usuarios con gustos afines ($k$) analizados por el algoritmo para predecir tus recomendaciones.")}
+                  </span>
                   <span className="text-emerald-400 font-bold">{cfKUsers} users</span>
                 </div>
                 <input
@@ -457,8 +497,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
 
               <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">Min Rating Threshold</span>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-400">
+                    Min Rating Threshold
+                    {renderTooltip("Ratings Mínimos", "Calificación promedio mínima (en estrellas) de usuarios similares requerida para que una película sea candidata.")}
+                  </span>
                   <span className="text-emerald-400 font-bold">{cfMinRating.toFixed(1)} ★</span>
                 </div>
                 <input

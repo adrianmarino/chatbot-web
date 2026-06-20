@@ -94,8 +94,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
           <Cpu className="w-4 h-4 text-violet-400" />
           <span>Research & Engine Insights Console</span>
         </div>
-        <div className="flex items-center space-x-3">
-          <span className="text-[10px] text-slate-500 font-mono">Width: {width}px</span>
+        <div className="flex items-center space-x-2">
           <button
             onClick={onToggle}
             className="p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition"

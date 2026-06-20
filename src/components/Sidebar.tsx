@@ -184,12 +184,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </span>
   );
 
-  // Viewport Collision-Aware Tooltip Positioning Algorithm
+  // Viewport Collision-Aware Tooltip Positioning Algorithm (Increased height bounds to prevent scrollbars)
   const calculateTooltipStyles = (rect: DOMRect | null) => {
     if (!rect) return {};
 
     const tooltipWidth = 320;
-    const tooltipHeight = 280; // safe bounding height for sliders
+    const tooltipHeight = 420; // Increased to 420px to prevent scrollbars completely
     const margin = 12;
 
     // 1. Horizontal Placement (Right is preferred, fallback to left)
@@ -557,7 +557,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 /* Beautiful gamified locks banner for Cold-Start */
                 <div className="bg-amber-500/5 border border-amber-500/15 rounded-2xl p-3.5 text-[10.5px] text-amber-400/90 font-medium leading-relaxed font-sans select-none animate-in fade-in duration-300">
                   🔒 <strong>Locked (Cold-Start Mode):</strong> Requires at least <strong>20 ratings</strong> in MongoDB to unlock Collaborative Filtering. 
-                  <div className="mt-1.5 bg-slate-950/40 p-1.5 rounded-xl border border-slate-850/40 flex justify-between items-center text-[10px]">
+                  <div className="mt-1.5 bg-slate-950/40 p-1.5 rounded-xl border border-slate-855/40 flex justify-between items-center text-[10px]">
                     <span>Current User Ratings:</span>
                     <span className="font-bold text-amber-500">{ratingsCount} / 20</span>
                   </div>
@@ -677,7 +677,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           'Filtra previamente cualquier película candidata cuya calificación promedio dentro de tu grupo de usuarios afines no alcance este valor mínimo de estrellas.',
                           'Mayor tolerancia; permite que entren al LLM candidatos controversiales o de nicho.',
                           'Filtro de calidad muy exigente; solo ingresan películas con valoraciones excelentes entre tus vecinos afines.'
-                    )}
+                        )}
                       </span>
                       <span className="text-emerald-400 font-bold">{cfMinRating.toFixed(1)} ★</span>
                     </div>

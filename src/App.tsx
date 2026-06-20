@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ChatFeed } from './components/ChatFeed';
 import type { ChatMessage } from './components/ChatFeed';
-import { MovieGrid } from './components/MovieGrid';
 import { DeveloperPanel } from './components/DeveloperPanel';
 import { api } from './services/api';
 import type { UserProfile, Recommendation, RecommendationsMetadata } from './services/api';
@@ -13,15 +12,25 @@ function App() {
   const [activeProfile, setActiveProfile] = useState<UserProfile | null>(null);
   
   const [models, setModels] = useState<string[]>([]);
-  const [selectedModel, setSelectedModel] = useState<string>('llama3:latest');
+  const [selectedModel, setSelectedModel] = useState<string>('gemma3:4b');
   
   const [includeMetadata, setIncludeMetadata] = useState(true);
   const [excludeSeen, setExcludeSeen] = useState(true);
   
+  // Hyperparameters
+  const [retry, setRetry] = useState(2);
+  const [ragCandidates, setRagCandidates] = useState(20);
+  const [ragRecommendations, setRagRecommendations] = useState(5);
+  const [ragAugmentation, setRagAugmentation] = useState(5);
+  
+  const [cfCandidates, setCfCandidates] = useState(20);
+  const [cfRecommendations, setCfRecommendations] = useState(5);
+  const [cfAugmentation, setCfAugmentation] = useState(5);
+  const [cfKUsers, setCfKUsers] = useState(5);
+  const [cfMinRating, setCfMinRating] = useState(3.5);
+
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [meta, setMeta] = useState<RecommendationsMetadata | null>(null);
   
   const [ratedMovies, setRatedMovies] = useState<Record<string, number>>({});
@@ -47,8 +56,11 @@ function App() {
         const loadedModels = await api.getAvailableModels();
         setModels(loadedModels);
         
-        // Set default model preference
-        if (loadedModels.includes('deepseek-r1:8b')) {
+        // Prioritize Gemma models as default
+        const gemmaModel = loadedModels.find((m) => m.toLowerCase().includes('gemma'));
+        if (gemmaModel) {
+          setSelectedModel(gemmaModel);
+        } else if (loadedModels.includes('deepseek-r1:8b')) {
           setSelectedModel('deepseek-r1:8b');
         } else if (loadedModels.includes('llama3:latest')) {
           setSelectedModel('llama3:latest');
@@ -68,7 +80,6 @@ function App() {
   useEffect(() => {
     if (!activeProfile) {
       setMessages([]);
-      setRecommendations([]);
       setMeta(null);
       setRatedMovies({});
       return;
@@ -125,8 +136,6 @@ function App() {
         setMessages([]);
       }
 
-      // Clear old recommendations on profile swap
-      setRecommendations([]);
       setMeta(null);
     }
 
@@ -141,7 +150,6 @@ function App() {
     await api.createProfile(newProfile);
     const updated = await api.getProfiles();
     setProfiles(updated);
-    // Auto-select the newly created profile
     const created = updated.find((p) => p.email === newProfile.email);
     if (created) {
       setActiveProfile(created);
@@ -166,7 +174,6 @@ function App() {
     try {
       await api.deleteHistory(activeProfile.email);
       setMessages([]);
-      setRecommendations([]);
       setMeta(null);
     } catch (err) {
       console.error('Error clearing history:', err);
@@ -196,12 +203,21 @@ function App() {
         },
         settings: {
           llm: selectedModel,
+          retry: retry,
           include_metadata: includeMetadata,
           rag: {
+            candidates_limit: ragCandidates,
+            recommendations_limit: ragRecommendations,
+            similar_items_augmentation_limit: ragAugmentation,
             not_seen: excludeSeen,
           },
           collaborative_filtering: {
+            candidates_limit: cfCandidates,
+            recommendations_limit: cfRecommendations,
+            similar_items_augmentation_limit: cfAugmentation,
             not_seen: excludeSeen,
+            k_sim_users: cfKUsers,
+            min_rating_by_user: cfMinRating,
           },
         },
       });
@@ -209,7 +225,6 @@ function App() {
       // Find text content
       let botResponseText = 'Here are some custom movie recommendations for you:';
       if (response.metadata?.response?.content) {
-        // If DeepSeek-R1, we might strip out the thinking tags to keep the main chat clean
         const rawContent = response.metadata.response.content;
         botResponseText = rawContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
       }
@@ -221,10 +236,10 @@ function App() {
           sender: 'bot',
           text: botResponseText,
           timestamp: new Date(),
+          recommendations: response.items, // Embed recommendations directly into this chat message!
         },
       ]);
 
-      setRecommendations(response.items);
       if (response.metadata) {
         setMeta(response.metadata);
       }
@@ -305,26 +320,38 @@ function App() {
         onToggleMetadata={setIncludeMetadata}
         excludeSeen={excludeSeen}
         onToggleExcludeSeen={setExcludeSeen}
+        
+        retry={retry}
+        onSetRetry={setRetry}
+        ragCandidates={ragCandidates}
+        onSetRagCandidates={setRagCandidates}
+        ragRecommendations={ragRecommendations}
+        onSetRagRecommendations={setRagRecommendations}
+        ragAugmentation={ragAugmentation}
+        onSetRagAugmentation={setRagAugmentation}
+        cfCandidates={cfCandidates}
+        onSetCfCandidates={setCfCandidates}
+        cfRecommendations={cfRecommendations}
+        onSetCfRecommendations={setCfRecommendations}
+        cfAugmentation={cfAugmentation}
+        onSetCfAugmentation={setCfAugmentation}
+        cfKUsers={cfKUsers}
+        onSetCfKUsers={setCfKUsers}
+        cfMinRating={cfMinRating}
+        onSetCfMinRating={setCfMinRating}
       />
 
       {/* 2. Main Interface Layout */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {activeProfile ? (
-          <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
-            {/* Upper: Chat Conversation Feed */}
-            <div className="flex-1 min-h-[400px]">
-              <ChatFeed
-                messages={messages}
-                onSendMessage={handleSendMessage}
-                onClearHistory={handleClearHistory}
-                isLoading={isLoading}
-                activeProfileName={activeProfile?.name}
-              />
-            </div>
-            
-            {/* Lower: Recommendations Movie Grid */}
-            <MovieGrid
-              movies={recommendations}
+          <div className="flex-1 flex flex-col min-h-0">
+            {/* Conversational Chat Feed with Inline MovieGrid */}
+            <ChatFeed
+              messages={messages}
+              onSendMessage={handleSendMessage}
+              onClearHistory={handleClearHistory}
+              isLoading={isLoading}
+              activeProfileName={activeProfile?.name}
               onRateMovie={handleRateMovie}
               ratedMovies={ratedMovies}
             />

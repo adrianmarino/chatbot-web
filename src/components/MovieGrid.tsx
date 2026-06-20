@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Clapperboard } from 'lucide-react';
+import { Clapperboard } from 'lucide-react';
 import type { Recommendation } from '../services/api';
 import { MovieCard } from './MovieCard';
 
@@ -19,44 +19,37 @@ export const MovieGrid: React.FC<MovieGridProps> = ({
   }
 
   return (
-    <div className="border-t border-slate-800/80 bg-slate-950/40 px-6 py-8 space-y-6">
-      <div className="max-w-6xl mx-auto flex items-center justify-between">
+    <div className="py-4 space-y-4">
+      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
         <div className="flex items-center space-x-2 text-left">
           <div className="p-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg">
             <Clapperboard className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-100 flex items-center space-x-1.5">
-              <span>Personalized Recommendations</span>
-              <span className="text-xs font-normal text-slate-500">({movies.length} items found)</span>
+            <h3 className="text-xs font-bold text-slate-200">
+              Personalized Recommendations ({movies.length} items)
             </h3>
-            <p className="text-xs text-slate-500 font-medium">
-              Filtered and ranked by the Large Language Model context judge
+            <p className="text-[10px] text-slate-500">
+              Filtered and ranked by Large Language Model context judge
             </p>
           </div>
         </div>
-
-        <div className="flex items-center space-x-1.5 text-xs text-slate-400 bg-slate-900/60 border border-slate-800 px-3 py-1.5 rounded-xl">
-          <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
-          <span>Interactive Ratings Enabled</span>
-        </div>
       </div>
 
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {movies.map((movie) => {
           const movieId = movie.metadata?.db_item?.id || movie.title;
           const isRated = ratedMovies[movieId] !== undefined;
           const userRating = ratedMovies[movieId];
 
           return (
-            <div key={movieId} className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-              <MovieCard
-                movie={movie}
-                onRateMovie={(rating) => onRateMovie(movie, rating)}
-                isRated={isRated}
-                userRating={userRating}
-              />
-            </div>
+            <MovieCard
+              key={movieId}
+              movie={movie}
+              onRateMovie={(rating) => onRateMovie(movie, rating)}
+              isRated={isRated}
+              userRating={userRating}
+            />
           );
         })}
       </div>

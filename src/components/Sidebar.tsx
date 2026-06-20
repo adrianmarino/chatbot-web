@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter } from 'lucide-react';
+import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter, Sliders, Database, Users } from 'lucide-react';
 import type { UserProfile } from '../services/api';
 
 interface SidebarProps {
@@ -11,10 +11,34 @@ interface SidebarProps {
   models: string[];
   selectedModel: string;
   onSelectModel: (model: string) => void;
+  
+  // Settings values and handlers
   includeMetadata: boolean;
   onToggleMetadata: (val: boolean) => void;
   excludeSeen: boolean;
   onToggleExcludeSeen: (val: boolean) => void;
+  
+  // Pipeline hyperparameters
+  retry: number;
+  onSetRetry: (val: number) => void;
+  
+  ragCandidates: number;
+  onSetRagCandidates: (val: number) => void;
+  ragRecommendations: number;
+  onSetRagRecommendations: (val: number) => void;
+  ragAugmentation: number;
+  onSetRagAugmentation: (val: number) => void;
+  
+  cfCandidates: number;
+  onSetCfCandidates: (val: number) => void;
+  cfRecommendations: number;
+  onSetCfRecommendations: (val: number) => void;
+  cfAugmentation: number;
+  onSetCfAugmentation: (val: number) => void;
+  cfKUsers: number;
+  onSetCfKUsers: (val: number) => void;
+  cfMinRating: number;
+  onSetCfMinRating: (val: number) => void;
 }
 
 const AVAILABLE_GENRES = [
@@ -36,6 +60,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggleMetadata,
   excludeSeen,
   onToggleExcludeSeen,
+  
+  retry,
+  onSetRetry,
+  ragCandidates,
+  onSetRagCandidates,
+  ragRecommendations,
+  onSetRagRecommendations,
+  ragAugmentation,
+  onSetRagAugmentation,
+  cfCandidates,
+  onSetCfCandidates,
+  cfRecommendations,
+  onSetCfRecommendations,
+  cfAugmentation,
+  onSetCfAugmentation,
+  cfKUsers,
+  onSetCfKUsers,
+  cfMinRating,
+  onSetCfMinRating,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -101,13 +144,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <aside className="w-80 bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col h-screen overflow-hidden">
+    <aside className="w-80 bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col h-screen overflow-hidden shrink-0">
       {/* App Header */}
-      <div className="p-6 border-b border-slate-800 flex items-center space-x-3 bg-gradient-to-r from-violet-600/10 to-transparent">
+      <div className="p-6 border-b border-slate-800 flex items-center space-x-3 bg-gradient-to-r from-violet-600/10 to-transparent shrink-0">
         <div className="p-2 bg-gradient-to-tr from-violet-600 to-indigo-500 rounded-xl shadow-lg shadow-indigo-500/20">
           <Bot className="w-6 h-6 text-white" />
         </div>
-        <div>
+        <div className="text-left">
           <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
             Chatbot Web
           </h1>
@@ -117,8 +160,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Profiles Section */}
+      {/* Main scrollable body */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+        {/* Profile management */}
         <div>
           <div className="flex items-center justify-between mb-4">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -146,7 +190,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'bg-slate-950/20 border-slate-800/80 hover:bg-slate-800/40 hover:border-slate-700/80 text-slate-300'
                   }`}
                 >
-                  <div className="flex items-center space-x-3 overflow-hidden">
+                  <div className="flex items-center space-x-3 overflow-hidden text-left">
                     <div
                       className={`p-2 rounded-lg transition ${
                         isActive ? 'bg-violet-500/10 text-violet-400' : 'bg-slate-800 text-slate-400 group-hover:text-slate-200'
@@ -179,14 +223,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        {/* Model and Engine settings */}
+        {/* Model Section */}
         <div className="border-t border-slate-800 pt-6 space-y-4">
           <div className="flex items-center space-x-2 text-slate-400 text-xs font-semibold uppercase tracking-wider">
             <Sparkles className="w-4 h-4 text-indigo-400" />
             <span>LLM Reasoning Model</span>
           </div>
 
-          <div className="relative">
+          <div className="relative text-left">
             <select
               value={selectedModel}
               onChange={(e) => onSelectModel(e.target.value)}
@@ -202,70 +246,232 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span className="text-[10px]">▼</span>
             </div>
           </div>
-
-          {/* Quick Stats of profile */}
-          {activeProfile && (
-            <div className="bg-slate-950/40 rounded-xl p-3 border border-slate-800/80 text-left text-xs space-y-2">
-              <p className="font-semibold text-slate-400 border-b border-slate-800 pb-1 mb-1">
-                Profile Preferences:
-              </p>
-              <p className="text-slate-400">
-                <span className="text-slate-500 font-medium">Decade from:</span>{' '}
-                {activeProfile.metadata?.preferred_movies?.release?.from || 'N/A'}
-              </p>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {(activeProfile.metadata?.preferred_movies?.genres || []).map((g) => (
-                  <span
-                    key={g}
-                    className="bg-slate-800/80 border border-slate-700/60 text-slate-300 px-1.5 py-0.5 rounded-md text-[10px]"
-                  >
-                    {g}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Dynamic profile metadata summary */}
+        {activeProfile && (
+          <div className="bg-slate-950/40 rounded-xl p-3 border border-slate-800/80 text-left text-xs space-y-2">
+            <p className="font-semibold text-slate-400 border-b border-slate-800 pb-1 mb-1">
+              Active Preferences:
+            </p>
+            <p className="text-slate-400">
+              <span className="text-slate-500 font-medium">Release year:</span> &gt;={activeProfile.metadata?.preferred_movies?.release?.from || '1970'}
+            </p>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {(activeProfile.metadata?.preferred_movies?.genres || []).map((g) => (
+                <span
+                  key={g}
+                  className="bg-slate-800/80 border border-slate-700/60 text-slate-300 px-1.5 py-0.5 rounded-md text-[10px]"
+                >
+                  {g}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Footer Settings Accordion */}
-      <div className="p-4 border-t border-slate-800 bg-slate-950/20">
+      {/* Footer Settings Accordion (The Hyperparameter Tuning Dashboard!) */}
+      <div className="border-t border-slate-800 bg-slate-950/20 max-h-[50vh] flex flex-col shrink-0">
         <button
           onClick={() => setShowSettings(!showSettings)}
-          className="w-full flex items-center justify-between text-slate-400 hover:text-slate-200 p-2 rounded-lg hover:bg-slate-800/40 transition text-sm font-medium"
+          className="w-full flex items-center justify-between text-slate-400 hover:text-slate-200 p-4 hover:bg-slate-800/20 transition text-sm font-semibold shrink-0"
         >
           <div className="flex items-center space-x-2">
-            <Settings className="w-4 h-4" />
-            <span>Advanced Parameters</span>
+            <Settings className="w-4 h-4 text-violet-400" />
+            <span>Pipeline Hyperparameters</span>
           </div>
           <span>{showSettings ? '▲' : '▼'}</span>
         </button>
 
         {showSettings && (
-          <div className="mt-3 p-3 bg-slate-950/80 border border-slate-800 rounded-xl text-left space-y-3">
-            <label className="flex items-center justify-between cursor-pointer group">
-              <span className="text-xs text-slate-400 group-hover:text-slate-200 transition">
-                Include Metadata (RAG/Logs)
+          <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4 text-left border-t border-slate-800/40 pt-3">
+            {/* Global Settings */}
+            <div className="space-y-3">
+              <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider flex items-center space-x-1">
+                <Sliders className="w-3.5 h-3.5" />
+                <span>General Engine</span>
               </span>
-              <input
-                type="checkbox"
-                checked={includeMetadata}
-                onChange={(e) => onToggleMetadata(e.target.checked)}
-                className="w-4 h-4 rounded text-violet-600 border-slate-800 bg-slate-950 focus:ring-violet-500 focus:ring-offset-slate-950"
-              />
-            </label>
+              
+              <label className="flex items-center justify-between cursor-pointer group">
+                <span className="text-xs text-slate-400 group-hover:text-slate-200 transition">
+                  Include RAG Metadata
+                </span>
+                <input
+                  type="checkbox"
+                  checked={includeMetadata}
+                  onChange={(e) => onToggleMetadata(e.target.checked)}
+                  className="w-4 h-4 rounded text-violet-600 border-slate-800 bg-slate-950 focus:ring-violet-500 focus:ring-offset-slate-950 cursor-pointer"
+                />
+              </label>
 
-            <label className="flex items-center justify-between cursor-pointer group">
-              <span className="text-xs text-slate-400 group-hover:text-slate-200 transition">
-                Filter out Seen Movies
+              <label className="flex items-center justify-between cursor-pointer group">
+                <span className="text-xs text-slate-400 group-hover:text-slate-200 transition">
+                  Filter out Seen Movies
+                </span>
+                <input
+                  type="checkbox"
+                  checked={excludeSeen}
+                  onChange={(e) => onToggleExcludeSeen(e.target.checked)}
+                  className="w-4 h-4 rounded text-violet-600 border-slate-800 bg-slate-950 focus:ring-violet-500 focus:ring-offset-slate-950 cursor-pointer"
+                />
+              </label>
+
+              {/* LLM Retry slider */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">LLM Max Retries</span>
+                  <span className="text-violet-400 font-bold">{retry}</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="5"
+                  value={retry}
+                  onChange={(e) => onSetRetry(Number(e.target.value))}
+                  className="w-full accent-violet-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+            </div>
+
+            {/* RAG Settings */}
+            <div className="space-y-3 pt-2 border-t border-slate-850">
+              <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider flex items-center space-x-1">
+                <Database className="w-3.5 h-3.5 text-indigo-400" />
+                <span>RAG Pipeline (Semantic Search)</span>
               </span>
-              <input
-                type="checkbox"
-                checked={excludeSeen}
-                onChange={(e) => onToggleExcludeSeen(e.target.checked)}
-                className="w-4 h-4 rounded text-violet-600 border-slate-800 bg-slate-950 focus:ring-violet-500 focus:ring-offset-slate-950"
-              />
-            </label>
+
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">Candidates Retrieval Limit</span>
+                  <span className="text-indigo-400 font-bold">{ragCandidates}</span>
+                </div>
+                <input
+                  type="range"
+                  min="5"
+                  max="100"
+                  step="5"
+                  value={ragCandidates}
+                  onChange={(e) => onSetRagCandidates(Number(e.target.value))}
+                  className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">LLM Recommendation Limit</span>
+                  <span className="text-indigo-400 font-bold">{ragRecommendations}</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="20"
+                  value={ragRecommendations}
+                  onChange={(e) => onSetRagRecommendations(Number(e.target.value))}
+                  className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">Diversity Augmentation</span>
+                  <span className="text-indigo-400 font-bold">{ragAugmentation}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  value={ragAugmentation}
+                  onChange={(e) => onSetRagAugmentation(Number(e.target.value))}
+                  className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+            </div>
+
+            {/* Collaborative Filtering Settings */}
+            <div className="space-y-3 pt-2 border-t border-slate-850">
+              <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider flex items-center space-x-1">
+                <Users className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Collaborative Filtering (Warm)</span>
+              </span>
+
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">CF Candidate Limit</span>
+                  <span className="text-emerald-400 font-bold">{cfCandidates}</span>
+                </div>
+                <input
+                  type="range"
+                  min="5"
+                  max="100"
+                  step="5"
+                  value={cfCandidates}
+                  onChange={(e) => onSetCfCandidates(Number(e.target.value))}
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">CF LLM Recommendation Limit</span>
+                  <span className="text-emerald-400 font-bold">{cfRecommendations}</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="20"
+                  value={cfRecommendations}
+                  onChange={(e) => onSetCfRecommendations(Number(e.target.value))}
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">CF Diversity Augmentation</span>
+                  <span className="text-emerald-400 font-bold">{cfAugmentation}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  value={cfAugmentation}
+                  onChange={(e) => onSetCfAugmentation(Number(e.target.value))}
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">K-Nearest Neighbors</span>
+                  <span className="text-emerald-400 font-bold">{cfKUsers} users</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="20"
+                  value={cfKUsers}
+                  onChange={(e) => onSetCfKUsers(Number(e.target.value))}
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">Min Rating Threshold</span>
+                  <span className="text-emerald-400 font-bold">{cfMinRating.toFixed(1)} ★</span>
+                </div>
+                <input
+                  type="range"
+                  min="1.0"
+                  max="5.0"
+                  step="0.5"
+                  value={cfMinRating}
+                  onChange={(e) => onSetCfMinRating(Number(e.target.value))}
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -288,7 +494,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 text-left">
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-medium">Full Name *</label>
                   <input
@@ -313,7 +519,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4 text-left">
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-medium">Age</label>
                   <input
@@ -347,7 +553,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4 text-left">
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-medium">Nationality</label>
                   <input
@@ -380,7 +586,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1 text-left">
                 <label className="text-xs text-slate-400 font-medium flex items-center space-x-1">
                   <Filter className="w-3.5 h-3.5" />
                   <span>Favorite Movie Genres</span>

@@ -128,22 +128,6 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           )}
         </div>
 
-        {/* LLM Reason / Votes Section */}
-        {movie.votes && movie.votes.length > 0 && (
-          <div className="bg-slate-950/60 border border-slate-850 p-3 rounded-xl space-y-1.5">
-            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block">
-              Why Recommended:
-            </span>
-            <ul className="list-none text-[11px] text-slate-300 space-y-1 pl-1">
-              {movie.votes.map((vote, i) => (
-                <li key={i} className="italic before:content-['“'] after:content-['”'] leading-relaxed">
-                  {vote}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
         {/* Technical Insights Drawer */}
         {movie.metadata && (
           <div>

@@ -1,5 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Send, Sparkles, Trash2, ArrowRight, Loader2, Bot, User } from 'lucide-react';
+import type { Recommendation } from '../services/api';
+import { MovieGrid } from './MovieGrid';
 
 export interface ChatMessage {
   id: string;
@@ -7,6 +9,7 @@ export interface ChatMessage {
   text: string;
   timestamp: Date;
   status?: 'sending' | 'success' | 'error';
+  recommendations?: Recommendation[];
 }
 
 interface ChatFeedProps {
@@ -15,6 +18,8 @@ interface ChatFeedProps {
   onClearHistory: () => void;
   isLoading: boolean;
   activeProfileName: string | undefined;
+  onRateMovie: (movie: Recommendation, rating: number) => Promise<void>;
+  ratedMovies: Record<string, number>;
 }
 
 const SUGGESTED_PROMPTS = [
@@ -30,6 +35,8 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
   onClearHistory,
   isLoading,
   activeProfileName,
+  onRateMovie,
+  ratedMovies,
 }) => {
   const [inputText, setInputText] = React.useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -48,7 +55,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
   return (
     <div className="flex-1 flex flex-col bg-slate-950 h-full relative overflow-hidden">
       {/* Feed Header */}
-      <div className="h-16 border-b border-slate-800/80 px-6 flex items-center justify-between bg-slate-900/40 backdrop-blur-md z-10">
+      <div className="h-16 border-b border-slate-800/80 px-6 flex items-center justify-between bg-slate-900/40 backdrop-blur-md z-10 shrink-0">
         <div className="text-left">
           <h2 className="text-sm font-bold text-slate-100 flex items-center space-x-1.5">
             <Sparkles className="w-4 h-4 text-violet-400" />
@@ -114,40 +121,53 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           </div>
         ) : (
           /* Active Chat Thread */
-          <div className="max-w-3xl mx-auto space-y-6">
+          <div className="max-w-3xl mx-auto space-y-6 text-left">
             {messages.map((msg) => {
               const isUser = msg.sender === 'user';
               return (
-                <div
-                  key={msg.id}
-                  className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-in fade-in duration-200`}
-                >
-                  <div className={`flex items-start space-x-3 max-w-[85%] ${isUser ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
-                    {/* Avatar */}
-                    <div
-                      className={`p-2.5 rounded-xl border shrink-0 ${
-                        isUser
-                          ? 'bg-violet-600/15 border-violet-500/20 text-violet-400'
-                          : 'bg-slate-900 border-slate-800 text-slate-300'
-                      }`}
-                    >
-                      {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-                    </div>
+                <div key={msg.id} className="space-y-4">
+                  {/* Chat Bubble Row */}
+                  <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-in fade-in duration-200`}>
+                    <div className={`flex items-start space-x-3 max-w-[85%] ${isUser ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
+                      {/* Avatar */}
+                      <div
+                        className={`p-2.5 rounded-xl border shrink-0 ${
+                          isUser
+                            ? 'bg-violet-600/15 border-violet-500/20 text-violet-400'
+                            : 'bg-slate-900 border-slate-800 text-slate-300'
+                        }`}
+                      >
+                        {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                      </div>
 
-                    {/* Speech Bubble */}
-                    <div
-                      className={`rounded-2xl px-4 py-3 text-sm text-left shadow-lg ${
-                        isUser
-                          ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-medium shadow-indigo-500/5'
-                          : 'bg-slate-900 border border-slate-800/80 text-slate-200 leading-relaxed shadow-slate-950/20'
-                      }`}
-                    >
-                      {msg.text}
-                      <span className="block text-[10px] text-right mt-1.5 opacity-50 font-medium">
-                        {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                      {/* Speech Bubble */}
+                      <div
+                        className={`rounded-2xl px-4 py-3 text-sm text-left shadow-lg ${
+                          isUser
+                            ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-medium shadow-indigo-500/5'
+                            : 'bg-slate-900 border border-slate-800/80 text-slate-200 leading-relaxed shadow-slate-950/20'
+                        }`}
+                      >
+                        {msg.text}
+                        <span className="block text-[10px] text-right mt-1.5 opacity-50 font-medium">
+                          {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Inline Recommendations Grid under Bot Response */}
+                  {!isUser && msg.recommendations && msg.recommendations.length > 0 && (
+                    <div className="pl-14 w-full animate-in fade-in duration-300">
+                      <div className="bg-slate-900/20 border border-slate-800/60 rounded-2xl p-4 max-w-2xl shadow-inner">
+                        <MovieGrid
+                          movies={msg.recommendations}
+                          onRateMovie={onRateMovie}
+                          ratedMovies={ratedMovies}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -196,7 +216,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
       </div>
 
       {/* Input Form Footer */}
-      <div className="p-6 bg-slate-900/30 border-t border-slate-800/80 backdrop-blur-md z-10">
+      <div className="p-6 bg-slate-900/30 border-t border-slate-800/80 backdrop-blur-md z-10 shrink-0">
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex items-center space-x-3">
           <div className="relative flex-1">
             <input

@@ -45,6 +45,8 @@ export interface RecommendationSettings {
     recommendations_limit?: number;
     similar_items_augmentation_limit?: number;
     not_seen?: boolean;
+    k_sim_users?: number;
+    min_rating_by_user?: number;
   };
 }
 

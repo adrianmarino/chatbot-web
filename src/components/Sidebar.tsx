@@ -47,6 +47,13 @@ const AVAILABLE_GENRES = [
   'Crime', 'Animation', 'Documentary', 'Suspense'
 ];
 
+interface HelpDetail {
+  title: string;
+  explanation: string;
+  lower: string;
+  higher: string;
+}
+
 export const Sidebar: React.FC<SidebarProps> = ({
   profiles,
   activeProfile,
@@ -82,7 +89,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [activeHelp, setActiveHelp] = useState<string | null>(null);
+  const [popupHelp, setPopupHelp] = useState<HelpDetail | null>(null);
   
   // New profile form state
   const [name, setName] = useState('');
@@ -144,51 +151,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  const toggleHelp = (param: string) => {
-    setActiveHelp(activeHelp === param ? null : param);
+  // Helper to open the popup help card
+  const openHelp = (title: string, explanation: string, lower: string, higher: string) => {
+    setPopupHelp({ title, explanation, lower, higher });
   };
 
   // Helper to render interactive info triggers
-  const renderInfoTrigger = (param: string) => (
+  const renderInfoTrigger = (title: string, explanation: string, lower: string, higher: string) => (
     <button
       type="button"
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        toggleHelp(param);
+        openHelp(title, explanation, lower, higher);
       }}
-      className={`ml-1.5 p-0.5 rounded transition inline-block align-middle ${
-        activeHelp === param ? 'text-violet-400 bg-violet-500/10' : 'text-slate-500 hover:text-violet-400 hover:bg-slate-800'
-      }`}
+      className="ml-1.5 p-0.5 rounded text-slate-500 hover:text-violet-400 hover:bg-slate-800 transition inline-block align-middle"
       title="Haga clic para ver explicación detallada"
     >
       <Info className="w-3.5 h-3.5" />
     </button>
   );
-
-  // Helper to render expanded detailed inline card
-  const renderHelpCard = (param: string, title: string, explanation: string, lowerImpact: string, higherImpact: string) => {
-    if (activeHelp !== param) return null;
-    return (
-      <div className="mt-2 p-3.5 bg-slate-950 border border-slate-800/80 rounded-xl text-[11px] text-slate-300 space-y-2 leading-relaxed animate-in slide-in-from-top-1.5 duration-200">
-        <div className="font-bold text-slate-100 flex items-center space-x-1 border-b border-slate-800 pb-1">
-          <span>💡</span>
-          <span>{title}</span>
-        </div>
-        <p>{explanation}</p>
-        <div className="grid grid-cols-2 gap-2 text-[10px] pt-1.5 border-t border-slate-900">
-          <div className="bg-slate-900/40 p-1.5 rounded-lg border border-slate-850/40">
-            <span className="font-bold text-indigo-400 block mb-0.5">Valores Bajos:</span>
-            {lowerImpact}
-          </div>
-          <div className="bg-slate-900/40 p-1.5 rounded-lg border border-slate-850/40">
-            <span className="font-bold text-violet-400 block mb-0.5">Valores Altos:</span>
-            {higherImpact}
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <aside className="w-80 bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col h-screen overflow-hidden shrink-0">
@@ -344,7 +326,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-slate-400">
                     Include RAG Metadata
-                    {renderInfoTrigger('incMeta')}
+                    {renderInfoTrigger(
+                      'Include RAG Metadata',
+                      'Habilita la inserción de métricas de similitud técnica por cada película y los registros (logs) del pipeline en tiempo real. Esencial para auditorías científicas e investigativas.',
+                      'Inferencia del LLM ligeramente más rápida; no se capturan trazas detalladas en la consola de Insights.',
+                      'Permite evaluar en tiempo real los coeficientes de similitud coseno, los registros internos de llamadas y el prompt del LLM.'
+                    )}
                   </span>
                   <input
                     type="checkbox"
@@ -353,18 +340,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     className="w-4 h-4 rounded text-violet-600 border-slate-800 bg-slate-950 focus:ring-violet-500 focus:ring-offset-slate-950 cursor-pointer animate-in duration-100"
                   />
                 </div>
-                {renderHelpCard(
-                  'incMeta',
-                  'Include RAG Metadata',
-                  'Habilita la inserción de métricas de similitud técnica por cada película y los registros (logs) del pipeline en tiempo real. Esencial para auditorías científicas.',
-                  'Inferencia ligeramente más rápida; no se registran trazas en el Panel de Insights.',
-                  'Permite evaluar las distancias vectoriales y el prompt del LLM en tiempo real.'
-                )}
 
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-slate-400">
                     Filter out Seen Movies
-                    {renderInfoTrigger('exSeen')}
+                    {renderInfoTrigger(
+                      'Filter out Seen Movies',
+                      'Activa un filtro duro que evita que la base de datos de búsqueda semántica (RAG) o el Filtrado Colaborativo recuperen películas que el usuario activo ya haya calificado o visto en su historial.',
+                      'Permite recomendar películas ya valoradas, ideal para re-evaluar la precisión histórica del recomendador.',
+                      'Garantiza la serendipia pura y el descubrimiento de nuevo contenido no explorado previamente por el perfil.'
+                    )}
                   </span>
                   <input
                     type="checkbox"
@@ -373,13 +358,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     className="w-4 h-4 rounded text-violet-600 border-slate-800 bg-slate-950 focus:ring-violet-500 focus:ring-offset-slate-950 cursor-pointer"
                   />
                 </div>
-                {renderHelpCard(
-                  'exSeen',
-                  'Filter out Seen Movies',
-                  'Activa un filtro duro que evita que la base de datos de búsqueda semántica (RAG) o colaborativa recupere películas que el usuario activo ya haya calificado o visto en su historial.',
-                  'Permite recomendar películas ya valoradas (útil para re-evaluar la precisión).',
-                  'Garantiza la serendipia y el descubrimiento de nuevo contenido no visto.'
-                )}
               </div>
 
               {/* LLM Retry slider */}
@@ -387,7 +365,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400">
                     LLM Max Retries
-                    {renderInfoTrigger('retries')}
+                    {renderInfoTrigger(
+                      'LLM Max Retries',
+                      'Establece la cantidad de reintentos de llamada que hará el sistema si el modelo local en Ollama falla, devuelve texto truncado o genera una respuesta que viola el esquema de validación JSON de Pydantic.',
+                      'Menor tolerancia a fallos de formato, pero reduce el tiempo máximo de espera si el servidor está sobrecargado.',
+                      'Asegura la entrega de recomendaciones estables y estructuradas forzando la regeneración del JSON si es inestable.'
+                    )}
                   </span>
                   <span className="text-violet-400 font-bold">{retry}</span>
                 </div>
@@ -399,13 +382,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onChange={(e) => onSetRetry(Number(e.target.value))}
                   className="w-full accent-violet-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                {renderHelpCard(
-                  'retries',
-                  'LLM Max Retries',
-                  'Establece la cantidad de reintentos máximos permitidos al sistema en caso de que la respuesta generada por el LLM venga corrupta, incompleta o falle la validación JSON contra los esquemas de Pydantic.',
-                  'Menor tolerancia a respuestas mal formateadas, pero reduce la latencia en caso de fallos del LLM.',
-                  'Asegura la entrega de resultados estructurados estables ante salidas inestables del LLM.'
-                )}
               </div>
             </div>
 
@@ -420,7 +396,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400">
                     Candidates Retrieval Limit
-                    {renderInfoTrigger('ragCand')}
+                    {renderInfoTrigger(
+                      'Candidates Retrieval Limit (RAG)',
+                      'Determina la cantidad de películas candidatas iniciales recuperadas por ChromaDB usando la menor distancia coseno respecto a la búsqueda textual del usuario. Estos candidatos actúan como el contexto inyectado al LLM.',
+                      'Inferencia del LLM ultra rápida (menor contexto), pero arriesga omitir películas semánticamente valiosas para el usuario.',
+                      'Búsqueda sumamente exhaustiva. Otorga mayor riqueza y variedad de candidatos al LLM a costa de mayor latencia.'
+                    )}
                   </span>
                   <span className="text-indigo-400 font-bold">{ragCandidates}</span>
                 </div>
@@ -433,20 +414,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onChange={(e) => onSetRagCandidates(Number(e.target.value))}
                   className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                {renderHelpCard(
-                  'ragCand',
-                  'Candidates Retrieval Limit',
-                  'Determina la cantidad de películas iniciales recuperadas por ChromaDB mediante la menor distancia coseno respecto a la búsqueda del usuario. Estos candidatos actúan como el contexto inyectado al LLM.',
-                  'Inferencia del LLM extremadamente rápida, pero arriesga omitir coincidencias semánticas valiosas.',
-                  'Búsqueda sumamente exhaustiva. Otorga mayor diversidad de contexto al LLM a costo de mayor latencia.'
-                )}
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400">
                     LLM Recommendation Limit
-                    {renderInfoTrigger('ragRec')}
+                    {renderInfoTrigger(
+                      'LLM Recommendation Limit (RAG)',
+                      'Es el límite máximo de películas recomendadas que el LLM puede seleccionar a partir de la lista de candidatos inyectados. El LLM valida que las películas realmente coincidan con la intención de búsqueda e historial del usuario.',
+                      'Salida muy compacta y enfocada únicamente en los matches más evidentes y seguros.',
+                      'Salida de películas más extensa. Ideal para analizar la capacidad de discernimiento del LLM en espectros de contexto amplios.'
+                    )}
                   </span>
                   <span className="text-indigo-400 font-bold">{ragRecommendations}</span>
                 </div>
@@ -458,20 +437,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onChange={(e) => onSetRagRecommendations(Number(e.target.value))}
                   className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                {renderHelpCard(
-                  'ragRec',
-                  'LLM Recommendation Limit',
-                  'Número de películas elegidas y ordenadas finalmente por el LLM. El modelo evalúa cuáles de los candidatos inyectados responden con mayor precisión a tu prompt e historial.',
-                  'Salida muy compacta y enfocada en los matches más evidentes.',
-                  'Salida más extensa. Ideal para analizar la capacidad de discernimiento del LLM en espectros de contexto más amplios.'
-                )}
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400">
                     Diversity Augmentation
-                    {renderInfoTrigger('ragAug')}
+                    {renderInfoTrigger(
+                      'Diversity Augmentation (RAG)',
+                      'Cantidad de películas semánticamente similares (calculadas por ChromaDB) que el sistema añade de forma automática al final de las elegidas por el LLM. Funciona como una red de seguridad contra sesgos.',
+                      'Resultados puros decididos por el LLM; sin red de seguridad colateral de diversidad.',
+                      'Inyecta variedad colateral de forma matemática, garantizando que el usuario reciba un catálogo más amplio.'
+                    )}
                   </span>
                   <span className="text-indigo-400 font-bold">{ragAugmentation}</span>
                 </div>
@@ -483,13 +460,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onChange={(e) => onSetRagAugmentation(Number(e.target.value))}
                   className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                {renderHelpCard(
-                  'ragAug',
-                  'Diversity Augmentation',
-                  'Cantidad de películas similares a las elegidas por el LLM que se añaden directamente al final. Mitiga la potencial rigidez del filtro conceptual del LLM.',
-                  'Resultados puramente decididos por el LLM; sin red de seguridad de diversidad.',
-                  'Garantiza diversidad de recomendaciones acoplando ítems semánticamente afines calculados matemáticamente.'
-                )}
               </div>
             </div>
 
@@ -504,7 +474,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400">
                     CF Candidate Limit
-                    {renderInfoTrigger('cfCand')}
+                    {renderInfoTrigger(
+                      'CF Candidate Limit',
+                      'Límite de películas candidatas extraídas del Filtrado Colaborativo. Este motor busca patrones de calificaciones cruzadas de otros usuarios MongoDB con perfiles de votación afines al tuyo.',
+                      'Inferencia muy rápida, pero puede excluir opciones colaborativas de nicho o sorpresas agradables.',
+                      'Proporciona un catálogo de opciones más ricas al LLM para su jerarquización semántica.'
+                    )}
                   </span>
                   <span className="text-emerald-400 font-bold">{cfCandidates}</span>
                 </div>
@@ -517,20 +492,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onChange={(e) => onSetCfCandidates(Number(e.target.value))}
                   className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                {renderHelpCard(
-                  'cfCand',
-                  'CF Candidate Limit',
-                  'Límite de películas candidatas extraídas del Filtrado Colaborativo, calculadas a partir de la predicción de ratings ponderados de usuarios similares.',
-                  'Se analizan pocas opciones; inferencia muy rápida, pero puede excluir sorpresas agradables.',
-                  'Le proporciona un catálogo de opciones más ricas al LLM para su jerarquización semántica.'
-                )}
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400">
                     CF LLM Recommendation Limit
-                    {renderInfoTrigger('cfRec')}
+                    {renderInfoTrigger(
+                      'CF LLM Recommendation Limit',
+                      'Es el límite de películas colaborativas finales que el LLM filtrará e incluirá en la respuesta. El LLM valida que las predicciones colaborativas (puramente matemáticas) tengan un sentido semántico con tu prompt actual.',
+                      'Salida compacta y con un filtrado conceptual del LLM sumamente severo.',
+                      'Salida más permisiva. Ideal para evaluar la sinergia entre el modelo colaborativo y el juicio del LLM.'
+                    )}
                   </span>
                   <span className="text-emerald-400 font-bold">{cfRecommendations}</span>
                 </div>
@@ -542,20 +515,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onChange={(e) => onSetCfRecommendations(Number(e.target.value))}
                   className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                {renderHelpCard(
-                  'cfRec',
-                  'CF LLM Recommendation Limit',
-                  'Límite máximo de recomendaciones colaborativas finales que el LLM filtrará e incluirá en la respuesta, garantizando que tengan sentido conceptual con tu prompt.',
-                  'Resultados ultradepurados.',
-                  'Incluye una mayor variedad de predicciones colaborativas evaluadas semánticamente.'
-                )}
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400">
                     CF Diversity Augmentation
-                    {renderInfoTrigger('cfAug')}
+                    {renderInfoTrigger(
+                      'CF Diversity Augmentation',
+                      'Cantidad de películas similares que se añaden al resultado colaborativo final para incentivar el descubrimiento (serendipity), evitando que el recomendador encasille al usuario en un catálogo de nicho cerrado.',
+                      'La lista final depende estrictamente de las predicciones del modelo CF.',
+                      'Inyecta variedad colateral, mitigando el sesgo de popularidad del filtro colaborativo.'
+                    )}
                   </span>
                   <span className="text-emerald-400 font-bold">{cfAugmentation}</span>
                 </div>
@@ -567,20 +538,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onChange={(e) => onSetCfAugmentation(Number(e.target.value))}
                   className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                {renderHelpCard(
-                  'cfAug',
-                  'CF Diversity Augmentation',
-                  'Cantidad de películas similares que se añaden al resultado colaborativo final para incentivar la serendipia y evitar burbujas de recomendación cerradas.',
-                  'La lista final depende estrictamente de las predicciones del modelo CF.',
-                  'Inyecta variedad colateral, mitigando el sesgo de popularidad del filtro colaborativo.'
-                )}
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400">
                     K-Nearest Neighbors
-                    {renderInfoTrigger('cfK')}
+                    {renderInfoTrigger(
+                      'K-Nearest Neighbors (k)',
+                      'Establece el número de usuarios más similares ($k$) en la base de datos MongoDB que se analizarán para predecir tus calificaciones y películas candidatas colaborativas.',
+                      'Especialización radical. Las recomendaciones se basan en los gustos exactos de un grupo diminuto de usuarios afines.',
+                      'Generalización amplia. Promedia los gustos de un espectro más grande de usuarios similares, suavizando extremos.'
+                    )}
                   </span>
                   <span className="text-emerald-400 font-bold">{cfKUsers} users</span>
                 </div>
@@ -592,20 +561,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onChange={(e) => onSetCfKUsers(Number(e.target.value))}
                   className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                {renderHelpCard(
-                  'cfK',
-                  'K-Nearest Neighbors',
-                  'Establece el número de usuarios con gustos correlacionados ($k$) en MongoDB que se tomarán en cuenta para construir el vector de predicciones colaborativas.',
-                  'Especialización radical. Las recomendaciones se basan en los gustos exactos de un grupo diminuto de usuarios afines.',
-                  'Generalización amplia. Promedia los gustos de un espectro más grande de usuarios similares, suavizando extremos.'
-                )}
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400">
                     Min Rating Threshold
-                    {renderInfoTrigger('cfMin')}
+                    {renderInfoTrigger(
+                      'Min Rating Threshold',
+                      'Filtra previamente cualquier película candidata cuya calificación promedio dentro de tu grupo de usuarios afines no alcance este valor mínimo de estrellas.',
+                      'Mayor tolerancia; permite que entren al LLM candidatos controversiales o de nicho.',
+                      'Filtro de calidad muy exigente; solo ingresan películas con valoraciones excelentes entre tus vecinos afines.'
+                    )}
                   </span>
                   <span className="text-emerald-400 font-bold">{cfMinRating.toFixed(1)} ★</span>
                 </div>
@@ -618,13 +585,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onChange={(e) => onSetCfMinRating(Number(e.target.value))}
                   className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                {renderHelpCard(
-                  'cfMin',
-                  'Min Rating Threshold',
-                  'Filtra previamente cualquier película candidata cuya calificación promedio dentro de tu grupo de usuarios afines no alcance este valor mínimo de estrellas.',
-                  'Mayor tolerancia; permite que entren al LLM candidatos controversiales o de nicho.',
-                  'Filtro de calidad muy exigente; solo ingresan películas con valoraciones excelentes entre tus vecinos afines.'
-                )}
               </div>
             </div>
           </div>
@@ -784,6 +744,62 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Global High-Fidelity Ventana Emergente (Popup Help Modal) */}
+      {popupHelp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150 p-6 text-left space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
+              <h4 className="font-bold text-slate-100 text-sm flex items-center space-x-2">
+                <Info className="w-5 h-5 text-violet-400" />
+                <span>{popupHelp.title}</span>
+              </h4>
+              <button
+                onClick={() => setPopupHelp(null)}
+                className="text-slate-400 hover:text-slate-200 transition text-lg p-1"
+                title="Cerrar ventana"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <p className="text-xs text-slate-300 leading-relaxed font-sans font-medium">
+              {popupHelp.explanation}
+            </p>
+            
+            {/* Low vs High Impact Columns */}
+            <div className="grid grid-cols-2 gap-4 pt-3 border-t border-slate-800 text-[11px] font-sans">
+              <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between shadow-inner">
+                <div>
+                  <span className="font-bold text-indigo-400 block mb-1 uppercase tracking-wider text-[9px]">
+                    ▼ Valores Bajos:
+                  </span>
+                  <span className="text-slate-400 leading-relaxed font-normal">{popupHelp.lower}</span>
+                </div>
+              </div>
+              
+              <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between shadow-inner">
+                <div>
+                  <span className="font-bold text-violet-400 block mb-1 uppercase tracking-wider text-[9px]">
+                    ▲ Valores Altos:
+                  </span>
+                  <span className="text-slate-400 leading-relaxed font-normal">{popupHelp.higher}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end pt-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setPopupHelp(null)}
+                className="bg-gradient-to-r from-violet-600 to-indigo-500 hover:from-violet-500 hover:to-indigo-400 text-white font-bold px-5 py-2 rounded-xl text-xs transition shadow-lg shadow-indigo-500/10"
+              >
+                Entendido, cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

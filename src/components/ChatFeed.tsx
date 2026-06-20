@@ -245,7 +245,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                   <button
                     key={prompt}
                     onClick={() => onSendMessage(prompt)}
-                    className="p-3 bg-slate-900/60 border border-slate-800/80 hover:bg-slate-855 hover:border-slate-700 rounded-2xl text-left text-xs font-medium text-slate-300 hover:text-slate-100 transition group flex items-start justify-between"
+                    className="p-3 bg-slate-900/60 border border-slate-855 hover:border-slate-700 rounded-2xl text-left text-xs font-medium text-slate-300 hover:text-slate-100 transition group flex items-start justify-between"
                   >
                     <span>{prompt}</span>
                     <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-violet-400 group-hover:translate-x-1 transition ml-2 shrink-0 mt-0.5" />
@@ -315,8 +315,9 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
             {isLoading && (
               <div className="flex justify-start animate-in fade-in duration-300">
                 <div className="flex items-start space-x-3 w-full max-w-[85%]">
+                  {/* Corrected: Replaced spinner with pulsing Bot icon */}
                   <div className="p-2.5 rounded-xl border shrink-0 bg-slate-900 border-slate-800 text-violet-400">
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Bot className="w-4 h-4 animate-pulse" />
                   </div>
 
                   <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl px-5 py-4 text-left shadow-lg w-full space-y-4">

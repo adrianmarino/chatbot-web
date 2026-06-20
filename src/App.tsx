@@ -35,6 +35,7 @@ function App() {
   
   const [ratedMovies, setRatedMovies] = useState<Record<string, number>>({});
   const [isDevPanelOpen, setIsDevPanelOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Left sidebar collapsible state
   const [appInitializing, setAppInitializing] = useState(true);
 
   // Initialize: load profiles and models
@@ -306,40 +307,42 @@ function App() {
 
   return (
     <div className="h-screen w-screen flex bg-slate-950 text-slate-100 font-sans overflow-hidden">
-      {/* 1. Sidebar Panel */}
-      <Sidebar
-        profiles={profiles}
-        activeProfile={activeProfile}
-        onSelectProfile={handleSelectProfile}
-        onCreateProfile={handleCreateProfile}
-        onDeleteProfile={handleDeleteProfile}
-        models={models}
-        selectedModel={selectedModel}
-        onSelectModel={setSelectedModel}
-        includeMetadata={includeMetadata}
-        onToggleMetadata={setIncludeMetadata}
-        excludeSeen={excludeSeen}
-        onToggleExcludeSeen={setExcludeSeen}
-        
-        retry={retry}
-        onSetRetry={setRetry}
-        ragCandidates={ragCandidates}
-        onSetRagCandidates={setRagCandidates}
-        ragRecommendations={ragRecommendations}
-        onSetRagRecommendations={setRagRecommendations}
-        ragAugmentation={ragAugmentation}
-        onSetRagAugmentation={setRagAugmentation}
-        cfCandidates={cfCandidates}
-        onSetCfCandidates={setCfCandidates}
-        cfRecommendations={cfRecommendations}
-        onSetCfRecommendations={setCfRecommendations}
-        cfAugmentation={cfAugmentation}
-        onSetCfAugmentation={setCfAugmentation}
-        cfKUsers={cfKUsers}
-        onSetCfKUsers={setCfKUsers}
-        cfMinRating={cfMinRating}
-        onSetCfMinRating={setCfMinRating}
-      />
+      {/* 1. Collapsible Sidebar Panel */}
+      {isSidebarOpen && (
+        <Sidebar
+          profiles={profiles}
+          activeProfile={activeProfile}
+          onSelectProfile={handleSelectProfile}
+          onCreateProfile={handleCreateProfile}
+          onDeleteProfile={handleDeleteProfile}
+          models={models}
+          selectedModel={selectedModel}
+          onSelectModel={setSelectedModel}
+          includeMetadata={includeMetadata}
+          onToggleMetadata={setIncludeMetadata}
+          excludeSeen={excludeSeen}
+          onToggleExcludeSeen={setExcludeSeen}
+          
+          retry={retry}
+          onSetRetry={setRetry}
+          ragCandidates={ragCandidates}
+          onSetRagCandidates={setRagCandidates}
+          ragRecommendations={ragRecommendations}
+          onSetRagRecommendations={setRagRecommendations}
+          ragAugmentation={ragAugmentation}
+          onSetRagAugmentation={setRagAugmentation}
+          cfCandidates={cfCandidates}
+          onSetCfCandidates={setCfCandidates}
+          cfRecommendations={cfRecommendations}
+          onSetCfRecommendations={setCfRecommendations}
+          cfAugmentation={cfAugmentation}
+          onSetCfAugmentation={setCfAugmentation}
+          cfKUsers={cfKUsers}
+          onSetCfKUsers={setCfKUsers}
+          cfMinRating={cfMinRating}
+          onSetCfMinRating={setCfMinRating}
+        />
+      )}
 
       {/* 2. Main Interface Layout */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
@@ -354,6 +357,8 @@ function App() {
               activeProfileName={activeProfile?.name}
               onRateMovie={handleRateMovie}
               ratedMovies={ratedMovies}
+              isSidebarOpen={isSidebarOpen}
+              onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
             />
           </div>
         ) : (

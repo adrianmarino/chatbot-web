@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Send, Sparkles, Trash2, ArrowRight, Loader2, Bot, User } from 'lucide-react';
+import { Send, Sparkles, Trash2, ArrowRight, Loader2, Bot, User, Menu } from 'lucide-react';
 import type { Recommendation } from '../services/api';
 import { MovieGrid } from './MovieGrid';
 
@@ -20,6 +20,8 @@ interface ChatFeedProps {
   activeProfileName: string | undefined;
   onRateMovie: (movie: Recommendation, rating: number) => Promise<void>;
   ratedMovies: Record<string, number>;
+  isSidebarOpen: boolean;
+  onToggleSidebar: () => void;
 }
 
 const SUGGESTED_PROMPTS = [
@@ -37,6 +39,8 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
   activeProfileName,
   onRateMovie,
   ratedMovies,
+  isSidebarOpen,
+  onToggleSidebar,
 }) => {
   const [inputText, setInputText] = React.useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -142,16 +146,27 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
     <div className="flex-1 flex flex-col bg-slate-950 h-full relative overflow-hidden">
       {/* Feed Header */}
       <div className="h-16 border-b border-slate-800/80 px-6 flex items-center justify-between bg-slate-900/40 backdrop-blur-md z-10 shrink-0">
-        <div className="text-left">
-          <h2 className="text-sm font-bold text-slate-100 flex items-center space-x-1.5">
-            <Sparkles className="w-4 h-4 text-violet-400" />
-            <span>AI Recommendation Chat</span>
-          </h2>
-          {activeProfileName && (
-            <p className="text-xs text-slate-500 font-medium">
-              Consulting as <span className="text-violet-400 font-semibold">{activeProfileName}</span>
-            </p>
-          )}
+        <div className="flex items-center space-x-3 text-left">
+          {/* Sidebar Toggle Button */}
+          <button
+            onClick={onToggleSidebar}
+            className="p-1.5 text-slate-400 hover:text-violet-400 hover:bg-slate-855 rounded-lg transition mr-1"
+            title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          
+          <div className="text-left">
+            <h2 className="text-sm font-bold text-slate-100 flex items-center space-x-1.5">
+              <Sparkles className="w-4 h-4 text-violet-400" />
+              <span>AI Recommendation Chat</span>
+            </h2>
+            {activeProfileName && (
+              <p className="text-[11px] text-slate-500 font-medium">
+                Consulting as <span className="text-violet-400 font-semibold">{activeProfileName}</span>
+              </p>
+            )}
+          </div>
         </div>
 
         {messages.length > 0 && (
@@ -196,7 +211,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                   <button
                     key={prompt}
                     onClick={() => onSendMessage(prompt)}
-                    className="p-3 bg-slate-900/60 border border-slate-800/80 hover:bg-slate-850 hover:border-slate-700 rounded-2xl text-left text-xs font-medium text-slate-300 hover:text-slate-100 transition group flex items-start justify-between"
+                    className="p-3 bg-slate-900/60 border border-slate-800/80 hover:bg-slate-855 hover:border-slate-700 rounded-2xl text-left text-xs font-medium text-slate-300 hover:text-slate-100 transition group flex items-start justify-between"
                   >
                     <span>{prompt}</span>
                     <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-violet-400 group-hover:translate-x-1 transition ml-2 shrink-0 mt-0.5" />

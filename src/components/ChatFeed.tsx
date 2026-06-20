@@ -275,7 +275,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                         {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                       </div>
 
-                      {/* Speech Bubble */}
+                      {/* Speech Bubble containing text and/or recommendations grid natively! */}
                       <div
                         className={`rounded-2xl px-4 py-3 text-sm text-left shadow-lg ${
                           isUser
@@ -286,7 +286,21 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                         {isUser ? (
                           msg.text
                         ) : (
-                          <div className="space-y-1">{renderFormattedText(msg.text)}</div>
+                          <div className="space-y-4">
+                            {/* 1. If text is present, render formatted text */}
+                            {msg.text && (
+                              <div className="space-y-1">{renderFormattedText(msg.text)}</div>
+                            )}
+                            
+                            {/* 2. Nest recommendations grid natively inside the speech bubble */}
+                            {msg.recommendations && msg.recommendations.length > 0 && (
+                              <MovieGrid
+                                movies={msg.recommendations}
+                                onRateMovie={onRateMovie}
+                                ratedMovies={ratedMovies}
+                              />
+                            )}
+                          </div>
                         )}
                         <span className="block text-[10px] text-right mt-1.5 opacity-50 font-medium">
                           {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -294,19 +308,6 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                       </div>
                     </div>
                   </div>
-
-                  {/* Inline Recommendations Grid under Bot Response */}
-                  {!isUser && msg.recommendations && msg.recommendations.length > 0 && (
-                    <div className="pl-14 w-full animate-in fade-in duration-300">
-                      <div className="bg-slate-900/20 border border-slate-800/60 rounded-2xl p-4 max-w-2xl shadow-inner">
-                        <MovieGrid
-                          movies={msg.recommendations}
-                          onRateMovie={onRateMovie}
-                          ratedMovies={ratedMovies}
-                        />
-                      </div>
-                    </div>
-                  )}
                 </div>
               );
             })}
@@ -315,7 +316,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
             {isLoading && (
               <div className="flex justify-start animate-in fade-in duration-300">
                 <div className="flex items-start space-x-3 w-full max-w-[85%]">
-                  {/* Corrected: Replaced spinner with pulsing Bot icon */}
+                  {/* pulsing Bot icon */}
                   <div className="p-2.5 rounded-xl border shrink-0 bg-slate-900 border-slate-800 text-violet-400">
                     <Bot className="w-4 h-4 animate-pulse" />
                   </div>

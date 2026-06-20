@@ -223,21 +223,14 @@ function App() {
         },
       });
 
-      // Find text content
-      let botResponseText = 'Here are some custom movie recommendations for you:';
-      if (response.metadata?.response?.content) {
-        const rawContent = response.metadata.response.content;
-        botResponseText = rawContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-      }
-
       setMessages((prev) => [
         ...prev,
         {
           id: `bot-${Date.now()}`,
           sender: 'bot',
-          text: botResponseText,
+          text: '', // Removed generic response text, rendering recommendations grid directly!
           timestamp: new Date(),
-          recommendations: response.items, // Embed recommendations directly into this chat message!
+          recommendations: response.items, // Embed recommendations directly into this chat message
         },
       ]);
 

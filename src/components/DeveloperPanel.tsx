@@ -83,6 +83,58 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
   const logs = metadata?.logs || [];
   const excludedItems = metadata?.excluded_items || [];
 
+  // Sophisticated formatter for Raw LLM Responses (parses <think> blocks)
+  const renderRawResponseContent = (raw: string) => {
+    if (!raw) {
+      return (
+        <div className="text-slate-600 italic py-8 text-center font-sans">
+          No raw LLM content found. Make sure you enable "Include RAG Metadata" in settings and make a query.
+        </div>
+      );
+    }
+
+    const thinkMatch = raw.match(/<think>([\s\S]*?)<\/think>/);
+    if (thinkMatch) {
+      const thinkContent = thinkMatch[1].trim();
+      const remainingContent = raw.replace(/<think>[\s\S]*?<\/think>/, '').trim();
+
+      return (
+        <div className="space-y-4 font-mono text-xs text-left w-full h-full">
+          {/* Proceso de Pensamiento (Amber Card) */}
+          <div className="bg-amber-500/5 border border-amber-500/15 rounded-2xl p-4 space-y-2 select-all">
+            <div className="flex items-center space-x-2 text-amber-400 font-bold text-[10px] uppercase tracking-wider font-sans border-b border-amber-500/10 pb-1.5">
+              <span>🧠</span>
+              <span>Proceso de Razonamiento (Chain of Thought)</span>
+            </div>
+            <div className="text-slate-400 leading-relaxed text-[11px] whitespace-pre-wrap italic">
+              {thinkContent}
+            </div>
+          </div>
+
+          {/* Respuesta Final (Emerald Card) */}
+          {remainingContent && (
+            <div className="space-y-2 select-all h-full">
+              <div className="flex items-center space-x-2 text-emerald-400 font-bold text-[10px] uppercase tracking-wider font-sans">
+                <span>🎯</span>
+                <span>Respuesta Estructurada Final</span>
+              </div>
+              <div className="bg-slate-950 border border-slate-850 p-4 rounded-2xl whitespace-pre-wrap leading-relaxed text-[11px] text-emerald-400 shadow-inner">
+                {remainingContent}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Default syntax box for non-reasoning output
+    return (
+      <div className="bg-slate-950 border border-slate-850 p-4 rounded-2xl whitespace-pre-wrap leading-relaxed text-[11px] text-emerald-400 shadow-inner select-all">
+        {raw}
+      </div>
+    );
+  };
+
   return (
     <div
       style={{ width: `${width}px` }}
@@ -193,9 +245,9 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto p-5 text-left font-mono text-xs pl-6 bg-slate-950/20">
         {activeTab === 'logs' && (
-          <div className="space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-855 h-full overflow-y-auto shadow-inner">
+          <div className="space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-850 h-full overflow-y-auto shadow-inner">
             {logs.length === 0 ? (
-              <div className="text-slate-600 italic py-8 text-center">No active logs captured. Ask a question to see real-time logs.</div>
+              <div className="text-slate-600 italic py-8 text-center font-sans">No active logs captured. Ask a question to see real-time logs.</div>
             ) : (
               logs.map((log, idx) => (
                 <div key={idx} className="border-b border-slate-900 pb-2.5 mb-2.5 last:border-0 text-slate-300 leading-relaxed text-[11px] flex">
@@ -210,23 +262,21 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
         {activeTab === 'prompt' && (
           <div className="space-y-2 h-full flex flex-col">
             <div className="bg-slate-950 p-4 rounded-xl border border-slate-855 overflow-auto flex-1 select-all relative whitespace-pre-wrap leading-relaxed text-[11px] text-indigo-300 shadow-inner">
-              {promptText ? promptText : <div className="text-slate-600 italic py-8 text-center">No prompt captured. Enable metadata in settings.</div>}
+              {promptText ? promptText : <div className="text-slate-600 italic py-8 text-center font-sans">No prompt captured. Enable metadata in settings.</div>}
             </div>
           </div>
         )}
 
         {activeTab === 'raw' && (
-          <div className="space-y-2 h-full flex flex-col">
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-855 overflow-auto flex-1 select-all whitespace-pre-wrap leading-relaxed text-[11px] text-emerald-400 shadow-inner">
-              {rawResponse ? rawResponse : <div className="text-slate-600 italic py-8 text-center">No raw LLM content. Enable metadata in settings.</div>}
-            </div>
+          <div className="space-y-2 h-full flex flex-col overflow-y-auto">
+            {renderRawResponseContent(rawResponse)}
           </div>
         )}
 
         {activeTab === 'excluded' && (
           <div className="h-full overflow-y-auto">
             {excludedItems.length === 0 ? (
-              <div className="bg-slate-950 p-6 rounded-xl border border-slate-855 text-slate-500 italic text-center shadow-inner">
+              <div className="bg-slate-950 p-6 rounded-xl border border-slate-855 text-slate-500 italic text-center shadow-inner font-sans">
                 No candidate movies were filtered out by the LLM context filter.
               </div>
             ) : (
@@ -248,12 +298,12 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
                           </span>
                         )}
                       </div>
-                      <p className="text-slate-400 line-clamp-3 leading-relaxed">{movie.description}</p>
+                      <p className="text-slate-400 line-clamp-3 leading-relaxed font-sans">{movie.description}</p>
                     </div>
 
                     <div className="flex flex-wrap gap-1 mt-2 border-t border-slate-900 pt-1.5">
                       {movie.genres.map((g) => (
-                        <span key={g} className="text-[9px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-855">
+                        <span key={g} className="text-[9px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-855 font-sans">
                           {g}
                         </span>
                       ))}

@@ -37,7 +37,7 @@ export const MovieGrid: React.FC<MovieGridProps> = ({
           </div>
         </div>
 
-        {/* Resend/Refresh Button */}
+        {/* Refresh Button */}
         {onRegenerate && (
           <button
             onClick={(e) => {
@@ -45,10 +45,10 @@ export const MovieGrid: React.FC<MovieGridProps> = ({
               onRegenerate();
             }}
             className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-violet-500/10 border border-violet-500/20 text-violet-400 hover:bg-violet-500/20 text-[10px] font-bold transition duration-150 cursor-pointer shadow-sm shadow-violet-500/5 select-none"
-            title="Re-send this query with the current hyperparameters and settings"
+            title="Refresh these recommendations with the current hyperparameters and settings"
           >
             <RotateCw className="w-3.5 h-3.5 animate-in spin-in duration-300" />
-            <span>Resend</span>
+            <span>Refresh</span>
           </button>
         )}
       </div>

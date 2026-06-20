@@ -31,6 +31,15 @@ const SUGGESTED_PROMPTS = [
   'Recommend some light-hearted classic comedies',
 ];
 
+interface HoverHelp {
+  title: string;
+  explanation: string;
+  lower: string;
+  higher: string;
+  x: number;
+  y: number;
+}
+
 export const ChatFeed: React.FC<ChatFeedProps> = ({
   messages,
   onSendMessage,
@@ -44,6 +53,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
 }) => {
   const [inputText, setInputText] = React.useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [hoverHelp, setHoverHelp] = React.useState<HoverHelp | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -150,6 +160,18 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           {/* Sidebar Toggle Button */}
           <button
             onClick={onToggleSidebar}
+            onMouseEnter={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setHoverHelp({
+                title: 'Alternar Barra Lateral / Toggle Sidebar',
+                explanation: 'Oculta o expande la barra lateral de perfiles. Colapsarla maximiza el área de visualización del chat, dándote espacio de pantalla completa (Workbench) para evaluar las películas e insights side-by-side.',
+                lower: 'Barra lateral fija de 320px visible.',
+                higher: 'Pantalla completa; chat e insights comparten la totalidad del monitor.',
+                x: rect.right + 12,
+                y: rect.top + rect.height / 2,
+              });
+            }}
+            onMouseLeave={() => setHoverHelp(null)}
             className="p-1.5 text-slate-400 hover:text-violet-400 hover:bg-slate-855 rounded-lg transition mr-1"
             title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
@@ -176,6 +198,18 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                 onClearHistory();
               }
             }}
+            onMouseEnter={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setHoverHelp({
+                title: 'Clear Context Memory / Resetear Historial',
+                explanation: 'Borra permanentemente el historial conversacional (memoria a corto plazo) de este usuario de MongoDB. Esto evita que los temas y películas hablados anteriormente sesguen tus nuevas consultas.',
+                lower: 'Se mantiene el hilo y contexto previo.',
+                higher: 'Wipe total; el LLM te atenderá sin memoria previa, libre de sesgos contextuales.',
+                x: rect.left - 332, // Render to the left of the button since it's on the right edge
+                y: rect.top + rect.height / 2,
+              });
+            }}
+            onMouseLeave={() => setHoverHelp(null)}
             className="flex items-center space-x-1.5 text-xs text-slate-400 hover:text-rose-400 bg-slate-950/40 hover:bg-slate-800/40 border border-slate-800 px-3 py-1.5 rounded-xl transition"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -345,6 +379,36 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           </button>
         </form>
       </div>
+
+      {/* Global Viewport-Level Draggable/Floating Hover Tooltip (Fixed position, 100% immune to scroll clippings) */}
+      {hoverHelp && (
+        <div
+          style={{
+            position: 'fixed',
+            left: `${hoverHelp.x}px`,
+            top: `${hoverHelp.y}px`,
+            transform: 'translateY(-50%)',
+          }}
+          className="w-80 p-4 bg-slate-950/95 border border-slate-800 text-[11px] text-slate-300 rounded-2xl shadow-2xl space-y-3 z-50 pointer-events-none animate-in fade-in zoom-in-95 duration-100 font-sans leading-relaxed backdrop-blur-sm"
+        >
+          <div className="font-bold text-slate-100 flex items-center space-x-1.5 border-b border-slate-800 pb-1.5">
+            <span>💡</span>
+            <span>{hoverHelp.title}</span>
+          </div>
+          <p className="font-medium text-slate-300">{hoverHelp.explanation}</p>
+          
+          <div className="grid grid-cols-2 gap-2 text-[10px] pt-2 border-t border-slate-900 font-sans">
+            <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-850/40">
+              <span className="font-bold text-indigo-400 block mb-0.5 uppercase tracking-wider text-[8px]">Valores Bajos:</span>
+              <span className="text-slate-400 font-normal">{hoverHelp.lower}</span>
+            </div>
+            <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-850/40">
+              <span className="font-bold text-violet-400 block mb-0.5 uppercase tracking-wider text-[8px]">Valores Altos:</span>
+              <span className="text-slate-400 font-normal">{hoverHelp.higher}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

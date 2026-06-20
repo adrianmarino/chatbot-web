@@ -8,6 +8,15 @@ interface DeveloperPanelProps {
   onToggle: () => void;
 }
 
+interface HoverHelp {
+  title: string;
+  explanation: string;
+  lower: string;
+  higher: string;
+  x: number;
+  y: number;
+}
+
 export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
   metadata,
   isOpen,
@@ -16,6 +25,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
   const [activeTab, setActiveTab] = useState<'logs' | 'prompt' | 'raw' | 'excluded'>('logs');
   const [width, setWidth] = useState(768); // Double the previous width (768px instead of 384px) by default
   const [isDragging, setIsDragging] = useState(false);
+  const [hoverHelp, setHoverHelp] = useState<HoverHelp | null>(null);
   const dragRef = useRef<HTMLDivElement>(null);
 
   // Drag handlers for resizability
@@ -106,7 +116,21 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
 
       {/* Metric Summary Cards */}
       <div className="p-4 grid grid-cols-2 gap-4 shrink-0 border-b border-slate-800 bg-slate-950/20 pl-6">
-        <div className="bg-slate-950 border border-slate-850 p-4 rounded-xl space-y-1 text-left shadow-md">
+        <div
+          onMouseEnter={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            setHoverHelp({
+              title: 'Tiempo de Respuesta (Latencia)',
+              explanation: 'Mide los segundos transcurridos desde que envías tu mensaje hasta que se renderiza el resultado final. Suma: búsqueda semántica/colaborativa + inferencia local de Ollama + mapeo de metadatos.',
+              lower: 'Inferencia ultra rápida (ej. usando gemma3:4b o modelos de menos parámetros).',
+              higher: 'Inferencia pesada (ej. usando deepseek-r1 o modelos de razonamiento profundo).',
+              x: rect.left - 332,
+              y: rect.top + rect.height / 2,
+            });
+          }}
+          onMouseLeave={() => setHoverHelp(null)}
+          className="bg-slate-950 border border-slate-850 p-4 rounded-xl space-y-1 text-left shadow-md cursor-help hover:border-slate-700 transition"
+        >
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-[10px] font-bold uppercase tracking-wider">Total Pipeline Latency</span>
             <Clock className="w-4 h-4 text-indigo-400" />
@@ -115,7 +139,21 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
           <p className="text-[10px] text-slate-500">Retrieval + LLM context decision and metadata mapping</p>
         </div>
 
-        <div className="bg-slate-950 border border-slate-850 p-4 rounded-xl space-y-1 text-left shadow-md">
+        <div
+          onMouseEnter={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            setHoverHelp({
+              title: 'Candidatos Excluidos',
+              explanation: 'Indica cuántas películas candidatas extraídas de la base de datos (por RAG o CF) fueron rechazadas por el LLM al juzgar que no respondían a tu perfil actual o intención conversacional.',
+              lower: 'El LLM es muy permisivo o la consulta es idéntica a los candidatos.',
+              higher: 'Filtrado severo y estricto del LLM. Asegura alta coincidencia conceptual con tu búsqueda.',
+              x: rect.left - 332,
+              y: rect.top + rect.height / 2,
+            });
+          }}
+          onMouseLeave={() => setHoverHelp(null)}
+          className="bg-slate-950 border border-slate-850 p-4 rounded-xl space-y-1 text-left shadow-md cursor-help hover:border-slate-700 transition"
+        >
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-[10px] font-bold uppercase tracking-wider">Filtered Out Candidates</span>
             <AlertTriangle className="w-4 h-4 text-amber-500" />
@@ -155,7 +193,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto p-5 text-left font-mono text-xs pl-6 bg-slate-950/20">
         {activeTab === 'logs' && (
-          <div className="space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-850 h-full overflow-y-auto shadow-inner">
+          <div className="space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-855 h-full overflow-y-auto shadow-inner">
             {logs.length === 0 ? (
               <div className="text-slate-600 italic py-8 text-center">No active logs captured. Ask a question to see real-time logs.</div>
             ) : (
@@ -171,7 +209,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
 
         {activeTab === 'prompt' && (
           <div className="space-y-2 h-full flex flex-col">
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-850 overflow-auto flex-1 select-all relative whitespace-pre-wrap leading-relaxed text-[11px] text-indigo-300 shadow-inner">
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-855 overflow-auto flex-1 select-all relative whitespace-pre-wrap leading-relaxed text-[11px] text-indigo-300 shadow-inner">
               {promptText ? promptText : <div className="text-slate-600 italic py-8 text-center">No prompt captured. Enable metadata in settings.</div>}
             </div>
           </div>
@@ -179,7 +217,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
 
         {activeTab === 'raw' && (
           <div className="space-y-2 h-full flex flex-col">
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-850 overflow-auto flex-1 select-all whitespace-pre-wrap leading-relaxed text-[11px] text-emerald-400 shadow-inner">
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-855 overflow-auto flex-1 select-all whitespace-pre-wrap leading-relaxed text-[11px] text-emerald-400 shadow-inner">
               {rawResponse ? rawResponse : <div className="text-slate-600 italic py-8 text-center">No raw LLM content. Enable metadata in settings.</div>}
             </div>
           </div>
@@ -188,7 +226,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
         {activeTab === 'excluded' && (
           <div className="h-full overflow-y-auto">
             {excludedItems.length === 0 ? (
-              <div className="bg-slate-950 p-6 rounded-xl border border-slate-850 text-slate-500 italic text-center shadow-inner">
+              <div className="bg-slate-950 p-6 rounded-xl border border-slate-855 text-slate-500 italic text-center shadow-inner">
                 No candidate movies were filtered out by the LLM context filter.
               </div>
             ) : (
@@ -196,7 +234,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
                 {excludedItems.map((movie) => (
                   <div
                     key={movie.title}
-                    className="bg-slate-950 border border-slate-850/80 p-4 rounded-xl text-[11px] space-y-2.5 text-left flex flex-col justify-between"
+                    className="bg-slate-950 border border-slate-855/80 p-4 rounded-xl text-[11px] space-y-2.5 text-left flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-start justify-between border-b border-slate-900 pb-1.5 mb-1.5">
@@ -215,7 +253,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
 
                     <div className="flex flex-wrap gap-1 mt-2 border-t border-slate-900 pt-1.5">
                       {movie.genres.map((g) => (
-                        <span key={g} className="text-[9px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-850">
+                        <span key={g} className="text-[9px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-855">
                           {g}
                         </span>
                       ))}
@@ -227,6 +265,36 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
           </div>
         )}
       </div>
+
+      {/* Viewport-level Hover Tooltip */}
+      {hoverHelp && (
+        <div
+          style={{
+            position: 'fixed',
+            left: `${hoverHelp.x}px`,
+            top: `${hoverHelp.y}px`,
+            transform: 'translateY(-50%)',
+          }}
+          className="w-80 p-4 bg-slate-950/95 border border-slate-800 text-[11px] text-slate-300 rounded-2xl shadow-2xl space-y-3 z-50 pointer-events-none animate-in fade-in zoom-in-95 duration-100 font-sans leading-relaxed backdrop-blur-sm"
+        >
+          <div className="font-bold text-slate-100 flex items-center space-x-1.5 border-b border-slate-800 pb-1.5">
+            <span>💡</span>
+            <span>{hoverHelp.title}</span>
+          </div>
+          <p className="font-medium text-slate-300">{hoverHelp.explanation}</p>
+          
+          <div className="grid grid-cols-2 gap-2 text-[10px] pt-2 border-t border-slate-900 font-sans">
+            <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-850/40">
+              <span className="font-bold text-indigo-400 block mb-0.5 uppercase tracking-wider text-[8px]">Valores Bajos:</span>
+              <span className="text-slate-400 font-normal">{hoverHelp.lower}</span>
+            </div>
+            <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-850/40">
+              <span className="font-bold text-violet-400 block mb-0.5 uppercase tracking-wider text-[8px]">Valores Altos:</span>
+              <span className="text-slate-400 font-normal">{hoverHelp.higher}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

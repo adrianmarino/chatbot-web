@@ -9,6 +9,15 @@ interface MovieCardProps {
   userRating?: number;
 }
 
+interface HoverHelp {
+  title: string;
+  explanation: string;
+  lower: string;
+  higher: string;
+  x: number;
+  y: number;
+}
+
 const GRADIENTS = [
   'from-violet-650 to-indigo-900',
   'from-emerald-700 to-teal-900',
@@ -27,6 +36,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
   const [hoverRating, setHoverRating] = useState<number | null>(null);
   const [ratingLoading, setRatingLoading] = useState(false);
   const [showTechnical, setShowTechnical] = useState(false);
+  const [hoverHelp, setHoverHelp] = useState<HoverHelp | null>(null);
 
   // Pick a stable gradient based on the movie title length
   const gradientIdx = movie.title.length % GRADIENTS.length;
@@ -45,6 +55,22 @@ export const MovieCard: React.FC<MovieCardProps> = ({
     }
   };
 
+  const showHelp = (e: React.MouseEvent, title: string, explanation: string, lower: string, higher: string) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setHoverHelp({
+      title,
+      explanation,
+      lower,
+      higher,
+      x: rect.left - 332, // Left position relative to card
+      y: rect.top + rect.height / 2,
+    });
+  };
+
+  const hideHelp = () => {
+    setHoverHelp(null);
+  };
+
   // Convert similarity score to colored percentage badge
   const querySim = movie.metadata?.db_item?.query_sim;
   const matchPercentage = querySim ? Math.round(querySim * 100) : null;
@@ -56,7 +82,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       : 'bg-slate-500/10 border-slate-500/30 text-slate-400';
 
   return (
-    <div className="bg-slate-900 border border-slate-800/80 rounded-2xl overflow-hidden text-left flex flex-col h-full shadow-xl hover:border-slate-700 transition duration-200 group">
+    <div className="bg-slate-900 border border-slate-800/80 rounded-2xl overflow-hidden text-left flex flex-col h-full shadow-xl hover:border-slate-700 transition duration-200 group relative">
       {/* Poster / Fallback */}
       <div className="h-44 relative w-full overflow-hidden shrink-0">
         {movie.poster ? (
@@ -81,7 +107,17 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 
         {/* Absolute Badges on Cover */}
         {matchPercentage !== null && (
-          <div className={`absolute top-3 right-3 px-2 py-1 rounded-lg border backdrop-blur-md text-xs font-bold ${matchColor}`}>
+          <div
+            onMouseEnter={(e) => showHelp(
+              e,
+              "Coincidencia Semántica (Match)",
+              "Nivel de similitud matemática (distancia coseno sobre embeddings vectoriales de MPNet) calculada en ChromaDB entre los conceptos de tu búsqueda textual y la sinopsis/metadatos de la película.",
+              "Afinidad conceptual baja o indirecta con los términos de tu prompt.",
+              "Fuerte afinidad temática directa con la intención y conceptos expresados en tu consulta."
+            )}
+            onMouseLeave={hideHelp}
+            className={`absolute top-3 right-3 px-2 py-1 rounded-lg border backdrop-blur-md text-xs font-bold cursor-help ${matchColor}`}
+          >
             {matchPercentage}% Match
           </div>
         )}
@@ -133,7 +169,15 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           <div>
             <button
               onClick={() => setShowTechnical(!showTechnical)}
-              className="text-[10px] font-bold text-slate-500 hover:text-slate-300 flex items-center space-x-1.5"
+              onMouseEnter={(e) => showHelp(
+                e,
+                "Métricas Vectoriales de ChromaDB",
+                "Despliega las distancias matemáticas exactas guardadas en la base de datos: ID del catálogo, similitud semántica con tu consulta (`query_sim`), afinidad del título (`title_sim`) y el rating promedio del catálogo.",
+                "Visualización limpia, simplificada y compacta.",
+                "Auditoría matemática completa de la posición y el peso del vector de la película en el espacio multidimensional."
+              )}
+              onMouseLeave={hideHelp}
+              className="text-[10px] font-bold text-slate-500 hover:text-slate-300 flex items-center space-x-1.5 cursor-help"
             >
               <Info className="w-3.5 h-3.5" />
               <span>{showTechnical ? 'Hide Technical Metrics' : 'See Similarity Metrics'}</span>
@@ -164,7 +208,17 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       </div>
 
       {/* Card Footer - Stars Interactive Rating */}
-      <div className="px-4 py-3 bg-slate-950/40 border-t border-slate-800/80 flex items-center justify-between">
+      <div
+        onMouseEnter={(e) => showHelp(
+          e,
+          "Calificación en Tiempo Real",
+          "Califica la película para registrar una interacción (rating) inmediata en MongoDB. Esto alimenta tu Filtrado Colaborativo. Al superar las 20 notas, el motor activará automáticamente predicciones por similitud de usuarios.",
+          "Falta de opiniones registradas en tu historial (Inicio Frío).",
+          "Modelo colaborativo altamente personalizado y predictivo (Warm-Start)."
+        )}
+        onMouseLeave={hideHelp}
+        className="px-4 py-3 bg-slate-950/40 border-t border-slate-800/80 flex items-center justify-between cursor-help hover:bg-slate-950/80 transition duration-150"
+      >
         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
           {isRated ? 'Your Rating:' : 'Rate this movie:'}
         </span>
@@ -196,6 +250,36 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           </div>
         )}
       </div>
+
+      {/* Viewport-level Hover Tooltip */}
+      {hoverHelp && (
+        <div
+          style={{
+            position: 'fixed',
+            left: `${hoverHelp.x}px`,
+            top: `${hoverHelp.y}px`,
+            transform: 'translateY(-50%)',
+          }}
+          className="w-85 p-4 bg-slate-950/95 border border-slate-800 text-[11px] text-slate-300 rounded-2xl shadow-2xl space-y-3 z-50 pointer-events-none animate-in fade-in zoom-in-95 duration-100 font-sans leading-relaxed backdrop-blur-sm"
+        >
+          <div className="font-bold text-slate-100 flex items-center space-x-1.5 border-b border-slate-800 pb-1.5">
+            <span>💡</span>
+            <span>{hoverHelp.title}</span>
+          </div>
+          <p className="font-medium text-slate-300">{hoverHelp.explanation}</p>
+          
+          <div className="grid grid-cols-2 gap-2 text-[10px] pt-2 border-t border-slate-900 font-sans">
+            <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-850/40">
+              <span className="font-bold text-indigo-400 block mb-0.5 uppercase tracking-wider text-[8px]">Valores Bajos:</span>
+              <span className="text-slate-400 font-normal">{hoverHelp.lower}</span>
+            </div>
+            <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-850/40">
+              <span className="font-bold text-violet-400 block mb-0.5 uppercase tracking-wider text-[8px]">Valores Altos:</span>
+              <span className="text-slate-400 font-normal">{hoverHelp.higher}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

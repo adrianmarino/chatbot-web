@@ -47,11 +47,13 @@ const AVAILABLE_GENRES = [
   'Crime', 'Animation', 'Documentary', 'Suspense'
 ];
 
-interface HelpDetail {
+interface HoverHelp {
   title: string;
   explanation: string;
   lower: string;
   higher: string;
+  x: number;
+  y: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -89,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [popupHelp, setPopupHelp] = useState<HelpDetail | null>(null);
+  const [hoverHelp, setHoverHelp] = useState<HoverHelp | null>(null);
   
   // New profile form state
   const [name, setName] = useState('');
@@ -151,25 +153,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  // Helper to open the popup help card
-  const openHelp = (title: string, explanation: string, lower: string, higher: string) => {
-    setPopupHelp({ title, explanation, lower, higher });
-  };
-
-  // Helper to render interactive info triggers
+  // Helper to render interactive info triggers with fixed tooltip behavior
   const renderInfoTrigger = (title: string, explanation: string, lower: string, higher: string) => (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        openHelp(title, explanation, lower, higher);
+    <span
+      onMouseEnter={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setHoverHelp({
+          title,
+          explanation,
+          lower,
+          higher,
+          x: rect.right + 12,
+          y: rect.top + rect.height / 2,
+        });
       }}
-      className="ml-1.5 p-0.5 rounded text-slate-500 hover:text-violet-400 hover:bg-slate-800 transition inline-block align-middle"
-      title="Haga clic para ver explicación detallada"
+      onMouseLeave={() => {
+        setHoverHelp(null);
+      }}
+      className="ml-1.5 p-0.5 rounded text-slate-500 hover:text-violet-400 cursor-help transition inline-block align-middle"
     >
       <Info className="w-3.5 h-3.5" />
-    </button>
+    </span>
   );
 
   return (
@@ -400,7 +404,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       'Candidates Retrieval Limit (RAG)',
                       'Determina la cantidad de películas candidatas iniciales recuperadas por ChromaDB usando la menor distancia coseno respecto a la búsqueda textual del usuario. Estos candidatos actúan como el contexto inyectado al LLM.',
                       'Inferencia del LLM ultra rápida (menor contexto), pero arriesga omitir películas semánticamente valiosas para el usuario.',
-                      'Búsqueda sumamente exhaustiva. Otorga mayor riqueza y variedad de candidatos al LLM a costa de mayor latencia.'
+                      'Búsqueda sumamente exhaustiva. Otorga mayor riqueza y variedad de candidatos al LLM a costo de mayor latencia.'
                     )}
                   </span>
                   <span className="text-indigo-400 font-bold">{ragCandidates}</span>
@@ -500,7 +504,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     CF LLM Recommendation Limit
                     {renderInfoTrigger(
                       'CF LLM Recommendation Limit',
-                      'Es el límite de películas colaborativas finales que el LLM filtrará e incluirá en la respuesta. El LLM valida que las predicciones colaborativas (puramente matemáticas) tengan un sentido semántico con tu prompt actual.',
+                      'Es el límite máximo de recomendaciones colaborativas finales que el LLM filtrará e incluirá en la respuesta, garantizando que tengan sentido conceptual con tu prompt actual.',
                       'Salida compacta y con un filtrado conceptual del LLM sumamente severo.',
                       'Salida más permisiva. Ideal para evaluar la sinergia entre el modelo colaborativo y el juicio del LLM.'
                     )}
@@ -546,7 +550,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     K-Nearest Neighbors
                     {renderInfoTrigger(
                       'K-Nearest Neighbors (k)',
-                      'Establece el número de usuarios más similares ($k$) en la base de datos MongoDB que se analizarán para predecir tus calificaciones y películas candidatas colaborativas.',
+                      'Establece el número de usuarios más similares ($k$) en la base de datos MongoDB que se tomarán en cuenta para construir el vector de predicciones colaborativas.',
                       'Especialización radical. Las recomendaciones se basan en los gustos exactos de un grupo diminuto de usuarios afines.',
                       'Generalización amplia. Promedia los gustos de un espectro más grande de usuarios similares, suavizando extremos.'
                     )}
@@ -593,7 +597,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Modal - Create User Profile */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-left">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div className="p-6 border-b border-slate-800 bg-gradient-to-r from-violet-600/10 to-transparent flex justify-between items-center">
               <h3 className="text-lg font-bold text-slate-100 flex items-center space-x-2">
@@ -609,7 +613,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-              <div className="grid grid-cols-2 gap-4 text-left">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-medium">Full Name *</label>
                   <input
@@ -634,7 +638,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 text-left">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-medium">Age</label>
                   <input
@@ -668,7 +672,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 text-left">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-medium">Nationality</label>
                   <input
@@ -701,7 +705,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
 
-              <div className="space-y-1 text-left">
+              <div className="space-y-1">
                 <label className="text-xs text-slate-400 font-medium flex items-center space-x-1">
                   <Filter className="w-3.5 h-3.5" />
                   <span>Favorite Movie Genres</span>
@@ -748,57 +752,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       )}
 
-      {/* Global High-Fidelity Ventana Emergente (Popup Help Modal) */}
-      {popupHelp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150 p-6 text-left space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
-              <h4 className="font-bold text-slate-100 text-sm flex items-center space-x-2">
-                <Info className="w-5 h-5 text-violet-400" />
-                <span>{popupHelp.title}</span>
-              </h4>
-              <button
-                onClick={() => setPopupHelp(null)}
-                className="text-slate-400 hover:text-slate-200 transition text-lg p-1"
-                title="Cerrar ventana"
-              >
-                ✕
-              </button>
+      {/* Global Viewport-Level Draggable/Floating Hover Tooltip (Fixed position, 100% immune to scroll clippings) */}
+      {hoverHelp && (
+        <div
+          style={{
+            position: 'fixed',
+            left: `${hoverHelp.x}px`,
+            top: `${hoverHelp.y}px`,
+            transform: 'translateY(-50%)',
+          }}
+          className="w-80 p-4 bg-slate-950/95 border border-slate-800 text-[11px] text-slate-300 rounded-2xl shadow-2xl space-y-3 z-50 pointer-events-none animate-in fade-in zoom-in-95 duration-100 font-sans leading-relaxed backdrop-blur-sm"
+        >
+          <div className="font-bold text-slate-100 flex items-center space-x-1.5 border-b border-slate-800 pb-1.5">
+            <span>💡</span>
+            <span>{hoverHelp.title}</span>
+          </div>
+          <p className="font-medium text-slate-300">{hoverHelp.explanation}</p>
+          
+          <div className="grid grid-cols-2 gap-2 text-[10px] pt-2 border-t border-slate-900 font-sans">
+            <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-850/40">
+              <span className="font-bold text-indigo-400 block mb-0.5 uppercase tracking-wider text-[8px]">Valores Bajos:</span>
+              <span className="text-slate-400 font-normal">{hoverHelp.lower}</span>
             </div>
-            
-            <p className="text-xs text-slate-300 leading-relaxed font-sans font-medium">
-              {popupHelp.explanation}
-            </p>
-            
-            {/* Low vs High Impact Columns */}
-            <div className="grid grid-cols-2 gap-4 pt-3 border-t border-slate-800 text-[11px] font-sans">
-              <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between shadow-inner">
-                <div>
-                  <span className="font-bold text-indigo-400 block mb-1 uppercase tracking-wider text-[9px]">
-                    ▼ Valores Bajos:
-                  </span>
-                  <span className="text-slate-400 leading-relaxed font-normal">{popupHelp.lower}</span>
-                </div>
-              </div>
-              
-              <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between shadow-inner">
-                <div>
-                  <span className="font-bold text-violet-400 block mb-1 uppercase tracking-wider text-[9px]">
-                    ▲ Valores Altos:
-                  </span>
-                  <span className="text-slate-400 leading-relaxed font-normal">{popupHelp.higher}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex justify-end pt-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => setPopupHelp(null)}
-                className="bg-gradient-to-r from-violet-600 to-indigo-500 hover:from-violet-500 hover:to-indigo-400 text-white font-bold px-5 py-2 rounded-xl text-xs transition shadow-lg shadow-indigo-500/10"
-              >
-                Entendido, cerrar
-              </button>
+            <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-850/40">
+              <span className="font-bold text-violet-400 block mb-0.5 uppercase tracking-wider text-[8px]">Valores Altos:</span>
+              <span className="text-slate-400 font-normal">{hoverHelp.higher}</span>
             </div>
           </div>
         </div>

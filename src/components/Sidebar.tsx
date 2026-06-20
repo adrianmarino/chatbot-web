@@ -39,6 +39,8 @@ interface SidebarProps {
   onSetCfKUsers: (val: number) => void;
   cfMinRating: number;
   onSetCfMinRating: (val: number) => void;
+
+  ratingsCount: number; // Current interaction count
 }
 
 const AVAILABLE_GENRES = [
@@ -87,11 +89,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSetCfKUsers,
   cfMinRating,
   onSetCfMinRating,
+
+  ratingsCount,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [hoverHelp, setHoverHelp] = useState<HoverHelp | null>(null);
   
+  const isWarmStart = ratingsCount >= 20;
+
   // New profile form state
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -325,7 +331,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Dynamic profile metadata summary */}
         {activeProfile && (
           <div
-            onMouseEnter={(e) => showHelp(e, "Configuración del Perfil Activo", "Muestra los filtros duros (décadas y géneros preferidos) definidos en el perfil que guían la búsqueda semántica vectorizada.", "Consulta abierta sin sesgo de preferencias.", "Recomendaciones acotadas a tu perfil específico.")}
+            onMouseEnter={(e) => showHelp(e, "Configuración del Perfil Activo", "Muestra los filtros duros (décadas y géneros preferidos) definidos en el perfil que guían la búsqueda semántica vectorizada, y el recuento actual de interacciones.", "Consulta abierta sin sesgo de preferencias.", "Recomendaciones acotadas a tu perfil específico.")}
             onMouseLeave={hideHelp}
             className="bg-slate-950/40 rounded-xl p-3 border border-slate-800/80 text-left text-xs space-y-2 cursor-help hover:border-slate-700 transition"
           >
@@ -334,6 +340,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </p>
             <p className="text-slate-400">
               <span className="text-slate-500 font-medium">Release year:</span> &gt;={activeProfile.metadata?.preferred_movies?.release?.from || '1970'}
+            </p>
+            <p className="text-slate-400">
+              <span className="text-slate-500 font-medium">Total Ratings:</span> <span className={`font-bold ${isWarmStart ? 'text-emerald-400' : 'text-amber-500'}`}>{ratingsCount}</span>
             </p>
             <div className="flex flex-wrap gap-1 mt-1">
               {(activeProfile.metadata?.preferred_movies?.genres || []).map((g) => (
@@ -436,204 +445,254 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             {/* RAG Settings */}
             <div className="space-y-3 pt-3 border-t border-slate-850">
-              <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider flex items-center space-x-1">
-                <Database className="w-3.5 h-3.5 text-indigo-400" />
-                <span>RAG Pipeline (Cold-Start)</span>
-              </span>
-
-              <div className="space-y-1">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400">
-                    Candidates Retrieval Limit
-                    {renderInfoTrigger(
-                      'Candidates Retrieval Limit (RAG)',
-                      'Determina la cantidad de películas candidatas iniciales recuperadas por ChromaDB usando la menor distancia coseno respecto a la búsqueda textual del usuario. Estos candidatos actúan como el contexto inyectado al LLM.',
-                      'Inferencia del LLM ultra rápida (menor contexto), pero arriesga omitir películas semánticamente valiosas para el usuario.',
-                      'Búsqueda sumamente exhaustiva. Otorga mayor riqueza y variedad de candidatos al LLM a costo de mayor latencia.'
-                    )}
-                  </span>
-                  <span className="text-indigo-400 font-bold">{ragCandidates}</span>
-                </div>
-                <input
-                  type="range"
-                  min="5"
-                  max="100"
-                  step="5"
-                  value={ragCandidates}
-                  onChange={(e) => onSetRagCandidates(Number(e.target.value))}
-                  className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
+              <div className="flex items-center justify-between border-b border-slate-800/40 pb-1">
+                <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider flex items-center space-x-1">
+                  <Database className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>RAG Pipeline (Cold-Start)</span>
+                </span>
+                <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md border ${
+                  !isWarmStart 
+                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                    : 'bg-slate-950 border-slate-850 text-slate-500'
+                }`}>
+                  {!isWarmStart ? '🟢 Active' : '⚪ Inactive'}
+                </span>
               </div>
 
-              <div className="space-y-1">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400">
-                    LLM Recommendation Limit
-                    {renderInfoTrigger(
-                      'LLM Recommendation Limit (RAG)',
-                      'Es el límite máximo de películas recomendadas que el LLM puede seleccionar a partir de la lista de candidatos inyectados. El LLM valida que las películas realmente coincidan con la intención de búsqueda e historial del usuario.',
-                      'Salida muy compacta y enfocada únicamente en los matches más evidentes y seguros.',
-                      'Salida de películas más extensa. Ideal para analizar la capacidad de discernimiento del LLM en espectros de contexto amplios.'
-                    )}
-                  </span>
-                  <span className="text-indigo-400 font-bold">{ragRecommendations}</span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="20"
-                  value={ragRecommendations}
-                  onChange={(e) => onSetRagRecommendations(Number(e.target.value))}
-                  className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
+              <div className={isWarmStart ? 'opacity-40 select-none' : ''}>
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">
+                        Candidates Retrieval Limit
+                        {renderInfoTrigger(
+                          'Candidates Retrieval Limit (RAG)',
+                          'Determina la cantidad de películas candidatas iniciales recuperadas por ChromaDB usando la menor distancia coseno respecto a la búsqueda textual del usuario. Estos candidatos actúan como el contexto inyectado al LLM.',
+                          'Inferencia del LLM ultra rápida (menor contexto), pero arriesga omitir películas semánticamente valiosas para el usuario.',
+                          'Búsqueda sumamente exhaustiva. Otorga mayor riqueza y variedad de candidatos al LLM a costo de mayor latencia.'
+                        )}
+                      </span>
+                      <span className="text-indigo-400 font-bold">{ragCandidates}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="5"
+                      max="100"
+                      step="5"
+                      disabled={isWarmStart}
+                      value={ragCandidates}
+                      onChange={(e) => onSetRagCandidates(Number(e.target.value))}
+                      className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
 
-              <div className="space-y-1">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400">
-                    Diversity Augmentation
-                    {renderInfoTrigger(
-                      'Diversity Augmentation (RAG)',
-                      'Cantidad de películas semánticamente similares (calculadas por ChromaDB) que el sistema añade de forma automática al final de las elegidas por el LLM. Funciona como una red de seguridad contra sesgos.',
-                      'Resultados puros decididos por el LLM; sin red de seguridad colateral de diversidad.',
-                      'Inyecta variedad colateral de forma matemática, garantizando que el usuario reciba un catálogo más amplio.'
-                    )}
-                  </span>
-                  <span className="text-indigo-400 font-bold">{ragAugmentation}</span>
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">
+                        LLM Recommendation Limit
+                        {renderInfoTrigger(
+                          'LLM Recommendation Limit (RAG)',
+                          'Es el límite máximo de películas recomendadas que el LLM puede seleccionar a partir de la lista de candidatos inyectados. El LLM valida que las películas realmente coincidan con la intención de búsqueda e historial del usuario.',
+                          'Salida muy compacta y enfocada únicamente en los matches más evidentes y seguros.',
+                          'Salida de películas más extensa. Ideal para analizar la capacidad de discernimiento del LLM en espectros de contexto amplios.'
+                        )}
+                      </span>
+                      <span className="text-indigo-400 font-bold">{ragRecommendations}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="20"
+                      disabled={isWarmStart}
+                      value={ragRecommendations}
+                      onChange={(e) => onSetRagRecommendations(Number(e.target.value))}
+                      className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">
+                        Diversity Augmentation
+                        {renderInfoTrigger(
+                          'Diversity Augmentation (RAG)',
+                          'Cantidad de películas semánticamente similares (calculadas por ChromaDB) que el sistema añade de forma automática al final de las elegidas por el LLM. Funciona como una red de seguridad contra sesgos.',
+                          'Resultados puros decididos por el LLM; sin red de seguridad colateral de diversidad.',
+                          'Inyecta variedad colateral de forma matemática, garantizando que el usuario reciba un catálogo más amplio.'
+                        )}
+                      </span>
+                      <span className="text-indigo-400 font-bold">{ragAugmentation}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="10"
+                      disabled={isWarmStart}
+                      value={ragAugmentation}
+                      onChange={(e) => onSetRagAugmentation(Number(e.target.value))}
+                      className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
                 </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  value={ragAugmentation}
-                  onChange={(e) => onSetRagAugmentation(Number(e.target.value))}
-                  className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
               </div>
             </div>
 
             {/* Collaborative Filtering Settings */}
             <div className="space-y-3 pt-3 border-t border-slate-850">
-              <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider flex items-center space-x-1">
-                <Users className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Collaborative Filtering (Warm)</span>
-              </span>
-
-              <div className="space-y-1">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400">
-                    CF Candidate Limit
-                    {renderInfoTrigger(
-                      'CF Candidate Limit',
-                      'Límite de películas candidatas extraídas del Filtrado Colaborativo. Este motor busca patrones de calificaciones cruzadas de otros usuarios MongoDB con perfiles de votación afines al tuyo.',
-                      'Inferencia muy rápida, pero puede excluir opciones colaborativas de nicho o sorpresas agradables.',
-                      'Proporciona un catálogo de opciones más ricas al LLM para su jerarquización semántica.'
-                    )}
-                  </span>
-                  <span className="text-emerald-400 font-bold">{cfCandidates}</span>
-                </div>
-                <input
-                  type="range"
-                  min="5"
-                  max="100"
-                  step="5"
-                  value={cfCandidates}
-                  onChange={(e) => onSetCfCandidates(Number(e.target.value))}
-                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
+              <div className="flex items-center justify-between border-b border-slate-800/40 pb-1">
+                <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider flex items-center space-x-1">
+                  <Users className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Collaborative Filtering (Warm)</span>
+                </span>
+                <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md border ${
+                  isWarmStart 
+                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 animate-pulse' 
+                    : 'bg-slate-950 border-slate-850 text-slate-500'
+                }`}>
+                  {isWarmStart ? '🟢 Active' : '🔒 Locked'}
+                </span>
               </div>
 
-              <div className="space-y-1">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400">
-                    CF LLM Recommendation Limit
-                    {renderInfoTrigger(
-                      'CF LLM Recommendation Limit',
-                      'Es el límite máximo de recomendaciones colaborativas finales que el LLM filtrará e incluirá en la respuesta, garantizando que tengan sentido conceptual con tu prompt actual.',
-                      'Salida compacta y con un filtrado conceptual del LLM sumamente severo.',
-                      'Salida más permisiva. Ideal para evaluar la sinergia entre el modelo colaborativo y el juicio del LLM.'
-                    )}
-                  </span>
-                  <span className="text-emerald-400 font-bold">{cfRecommendations}</span>
+              {!isWarmStart ? (
+                /* Beautiful gamified locks banner for Cold-Start */
+                <div className="bg-amber-500/5 border border-amber-500/15 rounded-2xl p-3.5 text-[10.5px] text-amber-400/90 font-medium leading-relaxed font-sans select-none animate-in fade-in duration-300">
+                  🔒 <strong>Locked (Cold-Start Mode):</strong> Requires at least <strong>20 ratings</strong> in MongoDB to unlock Collaborative Filtering. 
+                  <div className="mt-1.5 bg-slate-950/40 p-1.5 rounded-xl border border-slate-850/40 flex justify-between items-center text-[10px]">
+                    <span>Current User Ratings:</span>
+                    <span className="font-bold text-amber-500">{ratingsCount} / 20</span>
+                  </div>
                 </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="20"
-                  value={cfRecommendations}
-                  onChange={(e) => onSetCfRecommendations(Number(e.target.value))}
-                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
+              ) : (
+                /* Unlocked banner */
+                <div className="bg-emerald-500/5 border border-emerald-500/15 rounded-2xl p-3.5 text-[10.5px] text-emerald-400/90 font-medium leading-relaxed font-sans select-none animate-in fade-in duration-300">
+                  🔓 <strong>Active (Warm-Start Mode):</strong> Profile successfully warm-started! Adjust neural similarity and collaborative predictions weights below.
+                </div>
+              )}
 
-              <div className="space-y-1">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400">
-                    CF Diversity Augmentation
-                    {renderInfoTrigger(
-                      'CF Diversity Augmentation',
-                      'Cantidad de películas similares que se añaden al resultado colaborativo final para incentivar el descubrimiento (serendipity), evitando que el recomendador encasille al usuario en un catálogo de nicho cerrado.',
-                      'La lista final depende estrictamente de las predicciones del modelo CF.',
-                      'Inyecta variedad colateral, mitigando el sesgo de popularidad del filtro colaborativo.'
-                    )}
-                  </span>
-                  <span className="text-emerald-400 font-bold">{cfAugmentation}</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  value={cfAugmentation}
-                  onChange={(e) => onSetCfAugmentation(Number(e.target.value))}
-                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
+              <div className={!isWarmStart ? 'opacity-30 select-none' : ''}>
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">
+                        CF Candidate Limit
+                        {renderInfoTrigger(
+                          'CF Candidate Limit',
+                          'Límite de películas candidatas extraídas del Filtrado Colaborativo. Este motor busca patrones de calificaciones cruzadas de otros usuarios MongoDB con perfiles de votación afines al tuyo.',
+                          'Inferencia muy rápida, pero puede excluir opciones colaborativas de nicho o sorpresas agradables.',
+                          'Proporciona un catálogo de opciones más ricas al LLM para su jerarquización semántica.'
+                        )}
+                      </span>
+                      <span className="text-emerald-400 font-bold">{cfCandidates}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="5"
+                      max="100"
+                      step="5"
+                      disabled={!isWarmStart}
+                      value={cfCandidates}
+                      onChange={(e) => onSetCfCandidates(Number(e.target.value))}
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
 
-              <div className="space-y-1">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400">
-                    K-Nearest Neighbors
-                    {renderInfoTrigger(
-                      'K-Nearest Neighbors (k)',
-                      'Establece el número de usuarios más similares ($k$) en la base de datos MongoDB que se tomarán en cuenta para construir el vector de predicciones colaborativas.',
-                      'Especialización radical. Las recomendaciones se basan en los gustos exactos de un grupo diminuto de usuarios afines.',
-                      'Generalización amplia. Promedia los gustos de un espectro más grande de usuarios similares, suavizando extremos.'
-                    )}
-                  </span>
-                  <span className="text-emerald-400 font-bold">{cfKUsers} users</span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="20"
-                  value={cfKUsers}
-                  onChange={(e) => onSetCfKUsers(Number(e.target.value))}
-                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">
+                        CF LLM Recommendation Limit
+                        {renderInfoTrigger(
+                          'CF LLM Recommendation Limit',
+                          'Es el límite máximo de recomendaciones colaborativas finales que el LLM filtrará e incluirá en la respuesta, garantizando que tengan sentido conceptual con tu prompt actual.',
+                          'Salida compacta y con un filtrado conceptual del LLM sumamente severo.',
+                          'Salida más permisiva. Ideal para evaluar la sinergia entre el modelo colaborativo y el juicio del LLM.'
+                        )}
+                      </span>
+                      <span className="text-emerald-400 font-bold">{cfRecommendations}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="20"
+                      disabled={!isWarmStart}
+                      value={cfRecommendations}
+                      onChange={(e) => onSetCfRecommendations(Number(e.target.value))}
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
 
-              <div className="space-y-1">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400">
-                    Min Rating Threshold
-                    {renderInfoTrigger(
-                      'Min Rating Threshold',
-                      'Filtra previamente cualquier película candidata cuya calificación promedio dentro de tu grupo de usuarios afines no alcance este valor mínimo de estrellas.',
-                      'Mayor tolerancia; permite que entren al LLM candidatos controversiales o de nicho.',
-                      'Filtro de calidad muy exigente; solo ingresan películas con valoraciones excelentes entre tus vecinos afines.'
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">
+                        CF Diversity Augmentation
+                        {renderInfoTrigger(
+                          'CF Diversity Augmentation',
+                          'Cantidad de películas similares que se añaden al resultado colaborativo final para incentivar el descubrimiento (serendipity), evitando que el recomendador encasille al usuario en un catálogo de nicho cerrado.',
+                          'La lista final depende estrictamente de las predicciones del modelo CF.',
+                          'Inyecta variedad colateral, mitigando el sesgo de popularidad del filtro colaborativo.'
+                        )}
+                      </span>
+                      <span className="text-emerald-400 font-bold">{cfAugmentation}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="10"
+                      disabled={!isWarmStart}
+                      value={cfAugmentation}
+                      onChange={(e) => onSetCfAugmentation(Number(e.target.value))}
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">
+                        K-Nearest Neighbors
+                        {renderInfoTrigger(
+                          'K-Nearest Neighbors (k)',
+                          'Establece el número de usuarios más similares ($k$) en la base de datos MongoDB que se tomarán en cuenta para construir el vector de predicciones colaborativas.',
+                          'Especialización radical. Las recomendaciones se basan en los gustos exactos de un grupo diminuto de usuarios afines.',
+                          'Generalización amplia. Promedia los gustos de un espectro más grande de usuarios similares, suavizando extremos.'
+                        )}
+                      </span>
+                      <span className="text-emerald-400 font-bold">{cfKUsers} users</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="20"
+                      disabled={!isWarmStart}
+                      value={cfKUsers}
+                      onChange={(e) => onSetCfKUsers(Number(e.target.value))}
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">
+                        Min Rating Threshold
+                        {renderInfoTrigger(
+                          'Min Rating Threshold',
+                          'Filtra previamente cualquier película candidata cuya calificación promedio dentro de tu grupo de usuarios afines no alcance este valor mínimo de estrellas.',
+                          'Mayor tolerancia; permite que entren al LLM candidatos controversiales o de nicho.',
+                          'Filtro de calidad muy exigente; solo ingresan películas con valoraciones excelentes entre tus vecinos afines.'
                     )}
-                  </span>
-                  <span className="text-emerald-400 font-bold">{cfMinRating.toFixed(1)} ★</span>
+                      </span>
+                      <span className="text-emerald-400 font-bold">{cfMinRating.toFixed(1)} ★</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1.0"
+                      max="5.0"
+                      step="0.5"
+                      disabled={!isWarmStart}
+                      value={cfMinRating}
+                      onChange={(e) => onSetCfMinRating(Number(e.target.value))}
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
                 </div>
-                <input
-                  type="range"
-                  min="1.0"
-                  max="5.0"
-                  step="0.5"
-                  value={cfMinRating}
-                  onChange={(e) => onSetCfMinRating(Number(e.target.value))}
-                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
               </div>
             </div>
           </div>

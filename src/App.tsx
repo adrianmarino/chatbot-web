@@ -335,6 +335,8 @@ function App() {
           onSetCfKUsers={setCfKUsers}
           cfMinRating={cfMinRating}
           onSetCfMinRating={setCfMinRating}
+
+          ratingsCount={Object.keys(ratedMovies).length} // Pass the ratings count to sidebar!
         />
       )}
 

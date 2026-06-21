@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Send, Sparkles, Trash2, ArrowRight, Loader2, Bot, User, Menu } from 'lucide-react';
+import { Send, Sparkles, Trash2, ArrowRight, Loader2, Bot, User, Menu, RotateCw } from 'lucide-react';
 import type { Recommendation } from '../services/api';
 import { MovieGrid } from './MovieGrid';
 
@@ -200,7 +200,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
               });
             }}
             onMouseLeave={() => setHoverHelp(null)}
-            className="p-1.5 text-slate-400 hover:text-violet-400 hover:bg-slate-855 rounded-lg transition mr-1"
+            className="p-1.5 text-slate-400 hover:text-violet-400 hover:bg-slate-855 rounded-lg transition mr-1 animate-in"
             title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
             <Menu className="w-5 h-5" />
@@ -320,12 +320,11 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                             )}
                             
                             {/* 2. Nest recommendations grid natively inside the speech bubble */}
-                            {msg.recommendations && msg.recommendations.length > 0 && (
+                            {msg.recommendations && (
                               <MovieGrid
                                 movies={msg.recommendations}
                                 onRateMovie={onRateMovie}
                                 ratedMovies={ratedMovies}
-                                onRegenerate={msg.queryText ? () => onSendMessage(msg.queryText!) : undefined}
                               />
                             )}
                           </div>
@@ -334,6 +333,31 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                           {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
+
+                      {/* Refresh Button on User Bubble (rendered outside but next to the bubble) */}
+                      {isUser && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            onSendMessage(msg.text);
+                          }}
+                          onMouseEnter={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setHoverHelp({
+                              title: 'Volver a Consultar / Refresh Query',
+                              explanation: 'Relanza esta misma pregunta usando tus parámetros y modelos actuales de la barra lateral. Útil para re-calcular recomendaciones tras mover deslizadores.',
+                              lower: 'Conserva el chat y evita re-escribir la pregunta.',
+                              higher: 'Dispara una nueva inferencia en bruto con los parámetros vigentes.',
+                              rect,
+                            });
+                          }}
+                          onMouseLeave={() => setHoverHelp(null)}
+                          className="p-1.5 text-slate-500 hover:text-violet-400 hover:bg-slate-900 rounded-xl transition self-center shrink-0 cursor-pointer"
+                          title="Refresh this query with current settings"
+                        >
+                          <RotateCw className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

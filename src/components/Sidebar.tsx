@@ -267,7 +267,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className={`group relative p-3 rounded-xl border cursor-pointer transition flex items-center justify-between ${
                     isActive
                       ? 'bg-violet-950/40 border-violet-500/40 shadow-lg shadow-violet-500/5 text-violet-200'
-                      : 'bg-slate-950/20 border-slate-800/80 hover:bg-slate-800/40 hover:border-slate-700/80 text-slate-300'
+                      : 'bg-slate-950/20 border-slate-800/80 hover:bg-slate-850/40 hover:border-slate-700/80 text-slate-300'
                   }`}
                 >
                   <div className="flex items-center space-x-3 overflow-hidden text-left">
@@ -494,7 +494,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     />
                   </div>
 
-                  {/* NEW SLIDER: LLM Max Generation Limit */}
+                  {/* RAG LLM Max Generation Limit (Increased max to 100!) */}
                   <div className="space-y-1">
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-slate-400">
@@ -503,7 +503,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           'LLM Max Generation Limit',
                           'Indica el valor de llm_response_limit que se inyecta directamente en la instrucción del prompt del LLM (ej. "Recommend up to {X} movies"). Alterar este valor cambia el texto del prompt, rompiendo el caché y forzando inferencias reales de Ollama.',
                           'Instrucción compacta en el prompt. Ollama genera menos candidatos textuales, acelerando el proceso.',
-                          'Instrucción extendida. Ollama genera más candidatos textuales enriqueciendo las opciones.'
+                          'Instrucción extendida de hasta 100 candidatos. Ollama genera un bloque de texto final más extenso.'
                         )}
                       </span>
                       <span className="text-indigo-400 font-bold">{ragLlmResponse}</span>
@@ -511,7 +511,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <input
                       type="range"
                       min="1"
-                      max="20"
+                      max="100"
                       disabled={isWarmStart}
                       value={ragLlmResponse}
                       onChange={(e) => onSetRagLlmResponse(Number(e.target.value))}
@@ -519,6 +519,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     />
                   </div>
 
+                  {/* RAG Final Recommendations Limit (Increased max to 100!) */}
                   <div className="space-y-1">
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-slate-400">
@@ -527,7 +528,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           'Final Recommendations Limit',
                           'Es el límite que toma tu recommendations_factory en el backend para recortar y truncar la respuesta final JSON enviada. Si es menor al límite de generación del LLM, permite podar resultados de manera programática.',
                           'Salida del JSON final extremadamente compacta.',
-                          'Salida del JSON final extendida con más películas.'
+                          'Salida del JSON final extendida de hasta 100 películas.'
                         )}
                       </span>
                       <span className="text-indigo-400 font-bold">{ragRecommendations}</span>
@@ -535,7 +536,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <input
                       type="range"
                       min="1"
-                      max="20"
+                      max="100"
                       disabled={isWarmStart}
                       value={ragRecommendations}
                       onChange={(e) => onSetRagRecommendations(Number(e.target.value))}
@@ -629,7 +630,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     />
                   </div>
 
-                  {/* NEW SLIDER: CF LLM Max Generation Limit */}
+                  {/* CF LLM Max Generation Limit (Increased max to 100!) */}
                   <div className="space-y-1">
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-slate-400">
@@ -638,7 +639,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           'CF LLM Generation Limit',
                           'Configura el llm_response_limit inyectado directamente en el prompt colaborativo del LLM, instruyendo la cantidad máxima de recomendaciones textuales a generar.',
                           'Ollama genera menos textos, acelerando radicalmente la inferencia.',
-                          'Ollama genera un bloque de texto final más numeroso.'
+                          'Ollama genera un bloque de texto final más numeroso de hasta 100 películas.'
                         )}
                       </span>
                       <span className="text-emerald-400 font-bold">{cfLlmResponse}</span>
@@ -646,7 +647,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <input
                       type="range"
                       min="1"
-                      max="20"
+                      max="100"
                       disabled={!isWarmStart}
                       value={cfLlmResponse}
                       onChange={(e) => onSetCfLlmResponse(Number(e.target.value))}
@@ -654,6 +655,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     />
                   </div>
 
+                  {/* CF Final Recommendations Limit (Increased max to 100!) */}
                   <div className="space-y-1">
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-emerald-400">
@@ -662,7 +664,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           'CF Final Recommendations Limit',
                           'Límite de películas colaborativas finales que el LLM filtrará e incluirá en la respuesta final JSON truncada.',
                           'Salida final muy recortada y directa.',
-                          'Salida final extendida.'
+                          'Salida final extendida de hasta 100 películas.'
                         )}
                       </span>
                       <span className="text-emerald-400 font-bold">{cfRecommendations}</span>
@@ -670,7 +672,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <input
                       type="range"
                       min="1"
-                      max="20"
+                      max="100"
                       disabled={!isWarmStart}
                       value={cfRecommendations}
                       onChange={(e) => onSetCfRecommendations(Number(e.target.value))}

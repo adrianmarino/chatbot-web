@@ -171,4 +171,11 @@ export const api = {
     const res = await client.get<UserInteraction[]>(`/interactions/users/${encodeURIComponent(userId)}`);
     return res.data;
   },
+
+  getSeenMovies: async (email: string): Promise<any[]> => {
+    const res = await client.get<any[]>('/items', {
+      params: { email, seen: true, limit: 100 },
+    });
+    return res.data;
+  },
 };

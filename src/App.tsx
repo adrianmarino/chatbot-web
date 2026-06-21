@@ -395,6 +395,7 @@ function App() {
               onClearHistory={handleClearHistory}
               isLoading={isLoading}
               activeProfileName={activeProfile?.name}
+              activeProfileEmail={activeProfile?.email}
               onRateMovie={handleRateMovie}
               ratedMovies={ratedMovies}
               isSidebarOpen={isSidebarOpen}

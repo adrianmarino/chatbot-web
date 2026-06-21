@@ -12,7 +12,9 @@ function App() {
   const [activeProfile, setActiveProfile] = useState<UserProfile | null>(null);
   
   const [models, setModels] = useState<string[]>([]);
-  const [selectedModel, setSelectedModel] = useState<string>('gemma3:4b');
+  const [selectedModel, setSelectedModel] = useState<string>(() => {
+    return localStorage.getItem('chatbot_selected_model') || 'gemma3:4b';
+  });
   
   const [includeMetadata, setIncludeMetadata] = useState(true);
   const [excludeSeen, setExcludeSeen] = useState(true);
@@ -61,17 +63,17 @@ function App() {
         const loadedModels = await api.getAvailableModels();
         setModels(loadedModels);
         
-        // Prioritize Gemma models as default
-        const gemmaModel = loadedModels.find((m) => m.toLowerCase().includes('gemma'));
-        if (gemmaModel) {
-          setSelectedModel(gemmaModel);
-        } else if (loadedModels.includes('deepseek-r1:8b')) {
-          setSelectedModel('deepseek-r1:8b');
-        } else if (loadedModels.includes('llama3:latest')) {
-          setSelectedModel('llama3:latest');
-        } else if (loadedModels.length > 0) {
-          setSelectedModel(loadedModels[0]);
-        }
+        // If current selected model is not in the loaded models list, select a fallback
+        setSelectedModel((prev) => {
+          if (loadedModels.includes(prev)) {
+            return prev;
+          }
+          const gemmaModel = loadedModels.find((m) => m.toLowerCase().includes('gemma'));
+          if (gemmaModel) return gemmaModel;
+          if (loadedModels.includes('deepseek-r1:8b')) return 'deepseek-r1:8b';
+          if (loadedModels.includes('llama3:latest')) return 'llama3:latest';
+          return loadedModels.length > 0 ? loadedModels[0] : prev;
+        });
       } catch (err) {
         console.error('Initialization error:', err);
       } finally {
@@ -80,6 +82,13 @@ function App() {
     }
     init();
   }, []);
+
+  // Save selected model choice
+  useEffect(() => {
+    if (selectedModel) {
+      localStorage.setItem('chatbot_selected_model', selectedModel);
+    }
+  }, [selectedModel]);
 
   // When active profile changes: load their interactions and chat history
   useEffect(() => {

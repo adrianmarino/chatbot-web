@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_HOST = import.meta.env.VITE_API_URL || 'http://nonosoft.ddns.net:8080';
+export const API_HOST = import.meta.env.VITE_API_URL || 'http://nonosoft.ddns.net:8080';
 export const BASE_URL = `${API_HOST}/api/v1`;
 
 const client = axios.create({

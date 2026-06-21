@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter, Sliders, Database, Users, Info } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter, Sliders, Database, Users, Info, BookOpen, ExternalLink, FolderGit } from 'lucide-react';
 import type { UserProfile } from '../services/api';
+import { API_HOST } from '../services/api';
 
 interface SidebarProps {
   profiles: UserProfile[];
@@ -101,8 +102,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ratingsCount,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [showSettings, setShowSettings] = useState(() => {
+    return localStorage.getItem('chatbot_show_settings') === 'true';
+  });
   const [hoverHelp, setHoverHelp] = useState<HoverHelp | null>(null);
+
+  // Save the showSettings state in localStorage
+  useEffect(() => {
+    localStorage.setItem('chatbot_show_settings', String(showSettings));
+  }, [showSettings]);
   
   const isWarmStart = ratingsCount >= 20;
 
@@ -364,6 +372,46 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
         )}
+
+        {/* API Documentation Links */}
+        <div className="border-t border-slate-800 pt-6 space-y-3">
+          <div className="flex items-center space-x-2 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+            <BookOpen className="w-4 h-4 text-violet-400" />
+            <span>Project Resources</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <a
+              href={`${API_HOST}/docs`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between p-2.5 rounded-xl border border-slate-800 bg-slate-950/20 hover:bg-slate-850/40 hover:border-slate-700 text-xs text-slate-300 transition"
+            >
+              <span className="font-semibold">Swagger UI</span>
+              <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+            </a>
+            <a
+              href={`${API_HOST}/redoc`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between p-2.5 rounded-xl border border-slate-800 bg-slate-950/20 hover:bg-slate-850/40 hover:border-slate-700 text-xs text-slate-300 transition"
+            >
+              <span className="font-semibold">ReDoc</span>
+              <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+            </a>
+          </div>
+          <a
+            href="https://github.com/adrianmarino/thesis-paper"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between p-2.5 rounded-xl border border-slate-800 bg-slate-950/20 hover:bg-slate-850/40 hover:border-slate-700 text-xs text-slate-300 transition w-full"
+          >
+            <div className="flex items-center space-x-2">
+              <FolderGit className="w-4 h-4 text-slate-400" />
+              <span className="font-semibold">Thesis Repository</span>
+            </div>
+            <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+          </a>
+        </div>
       </div>
 
       {/* Footer Settings Accordion (The Hyperparameter Tuning Dashboard!) */}

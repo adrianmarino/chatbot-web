@@ -185,7 +185,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
               onClick={() => setIsExpanded(!isExpanded)}
               className="text-violet-400 hover:text-violet-300 font-semibold mt-1.5 inline-flex items-center space-x-1"
             >
-              <span>{isExpanded ? 'Show less' : 'Read plot'}</span>
+              <span>{isExpanded ? 'Show less' : 'Read more'}</span>
               {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </button>
           )}

@@ -24,8 +24,16 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
   curlCommand,
 }) => {
   const [activeTab, setActiveTab] = useState<'logs' | 'prompt' | 'raw' | 'excluded' | 'curl'>('logs');
-  const [width, setWidth] = useState(768); // Double the previous width (768px instead of 384px) by default
+  const [width, setWidth] = useState(() => {
+    const saved = localStorage.getItem('chatbot_dev_panel_width');
+    return saved ? parseInt(saved, 10) : 768;
+  }); // Double the previous width (768px instead of 384px) by default
   const [isDragging, setIsDragging] = useState(false);
+
+  // Save dev panel width choice
+  useEffect(() => {
+    localStorage.setItem('chatbot_dev_panel_width', String(width));
+  }, [width]);
   const [isCopied, setIsCopied] = useState(false);
   const [hoverHelp, setHoverHelp] = useState<HoverHelp | null>(null);
   const dragRef = useRef<HTMLDivElement>(null);
@@ -122,7 +130,25 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
 
   const promptText = metadata?.response?.metadata?.prompt || '';
   const rawResponse = metadata?.response?.content || '';
-  const elapsedTime = metadata?.elapsed_time || 'N/A';
+
+  // Format elapsedTime from h:mm:ss.ss to total seconds, e.g. "3.45s"
+  const rawElapsedTime = metadata?.elapsed_time || 'N/A';
+  const formatToSeconds = (timeStr: string) => {
+    if (!timeStr || timeStr === 'N/A') return 'N/A';
+    if (timeStr.endsWith('s')) return timeStr;
+    const parts = timeStr.split(':');
+    if (parts.length === 3) {
+      const hours = parseInt(parts[0], 10);
+      const minutes = parseInt(parts[1], 10);
+      const seconds = parseFloat(parts[2]);
+      if (!isNaN(hours) && !isNaN(minutes) && !isNaN(seconds)) {
+        const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+        return `${totalSeconds.toFixed(2)}s`;
+      }
+    }
+    return timeStr;
+  };
+  const elapsedTime = formatToSeconds(rawElapsedTime);
   const logs = metadata?.logs || [];
   const excludedItems = metadata?.excluded_items || [];
 

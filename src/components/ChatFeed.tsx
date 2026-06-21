@@ -289,7 +289,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
             }`}
           >
             <MessageSquare className="w-3.5 h-3.5" />
-            <span>Chat Conversacional</span>
+            <span>Conversational Chat</span>
           </button>
           <button
             type="button"
@@ -301,7 +301,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
             }`}
           >
             <Film className="w-3.5 h-3.5" />
-            <span>Mis Calificaciones</span>
+            <span>My Ratings</span>
           </button>
         </div>
 
@@ -551,9 +551,9 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           </div>
         </>
       ) : (
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-slate-950/20">
+        <div className="flex-1 overflow-y-auto bg-slate-950/20 pb-8 space-y-6">
           {/* Gamified progress banner */}
-          <div className="p-6 shrink-0 border-b border-slate-800 bg-slate-900/10">
+          <div className="p-6 border-b border-slate-800 bg-slate-900/10">
             <div className={`p-4 rounded-2xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-4 max-w-4xl mx-auto text-left shadow-lg animate-in fade-in duration-200 ${
               Object.keys(ratedMovies).length >= 20 
                 ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-300' 
@@ -586,21 +586,21 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           
           {/* Movies Content Area */}
           {isLoadingSeen ? (
-            <div className="flex-1 flex items-center justify-center">
+            <div className="py-16 flex items-center justify-center w-full">
               <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
             </div>
           ) : seenMovies.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4 font-sans">
+            <div className="py-16 flex flex-col items-center justify-center p-8 text-center space-y-4 font-sans max-w-xl mx-auto w-full">
               <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl text-slate-500 animate-in zoom-in-95 duration-200">
                 <Film className="w-10 h-10 text-slate-500" />
               </div>
-              <h3 className="text-lg font-bold text-slate-200">No has calificado ninguna película aún</h3>
+              <h3 className="text-lg font-bold text-slate-200">You haven't rated any movies yet</h3>
               <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
-                Las películas que califiques con estrellas en tus recomendaciones aparecerán en esta sección. ¡Prueba a calificar películas para iniciar tu perfil!
+                Movies you rate with stars in your recommendations will appear in this section. Try rating movies to build your profile!
               </p>
             </div>
           ) : (
-            <div className="flex-1 overflow-y-auto px-6 max-w-4xl mx-auto w-full pb-8">
+            <div className="px-6 max-w-4xl mx-auto w-full">
               <MovieGrid
                 movies={seenMovies}
                 onRateMovie={onRateMovie}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter, Sliders, Database, Users, Info, BookOpen, ExternalLink, FolderGit } from 'lucide-react';
+import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter, Sliders, Database, Users, Info, BookOpen, ExternalLink, FolderGit, Wind } from 'lucide-react';
 import type { UserProfile } from '../services/api';
 import { API_HOST } from '../services/api';
 
@@ -113,6 +113,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, [showSettings]);
   
   const isWarmStart = ratingsCount >= 20;
+
+  const getAirflowUrl = () => {
+    try {
+      const url = new URL(API_HOST);
+      return `${url.protocol}//${url.hostname}:8686`;
+    } catch {
+      return 'http://nonosoft.ddns.net:8686';
+    }
+  };
 
   // New profile form state
   const [name, setName] = useState('');
@@ -408,6 +417,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex items-center space-x-2">
               <FolderGit className="w-4 h-4 text-slate-400" />
               <span className="font-semibold">Thesis Repository</span>
+            </div>
+            <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+          </a>
+          <a
+            href={getAirflowUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between p-2.5 rounded-xl border border-slate-800 bg-slate-950/20 hover:bg-slate-850/40 hover:border-slate-700 text-xs text-slate-300 transition w-full"
+          >
+            <div className="flex items-center space-x-2">
+              <Wind className="w-4 h-4 text-slate-400" />
+              <span className="font-semibold">Apache Airflow</span>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
           </a>

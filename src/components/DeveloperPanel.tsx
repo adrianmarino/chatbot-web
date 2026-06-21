@@ -88,7 +88,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
     if (!rect) return {};
 
     const tooltipWidth = 320;
-    const tooltipHeight = 250; // slightly shorter for metrics cards
+    const tooltipHeight = 420; // Increased to 420px to prevent scrollbars completely
     const margin = 12;
 
     // 1. Horizontal Placement (Prefer left since panel is on the right edge)

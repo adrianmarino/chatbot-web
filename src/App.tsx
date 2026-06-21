@@ -20,10 +20,12 @@ function App() {
   // Hyperparameters
   const [retry, setRetry] = useState(2);
   const [ragCandidates, setRagCandidates] = useState(20);
+  const [ragLlmResponse, setRagLlmResponse] = useState(20); // LLM Generation Limit state
   const [ragRecommendations, setRagRecommendations] = useState(5);
   const [ragAugmentation, setRagAugmentation] = useState(5);
   
   const [cfCandidates, setCfCandidates] = useState(20);
+  const [cfLlmResponse, setCfLlmResponse] = useState(20); // CF LLM Generation Limit state
   const [cfRecommendations, setCfRecommendations] = useState(5);
   const [cfAugmentation, setCfAugmentation] = useState(5);
   const [cfKUsers, setCfKUsers] = useState(5);
@@ -208,14 +210,14 @@ function App() {
           include_metadata: includeMetadata,
           rag: {
             candidates_limit: ragCandidates,
-            llm_response_limit: ragRecommendations,       // Mapped to change prompt text & break cache!
+            llm_response_limit: ragLlmResponse,           // Mapped to change prompt text & break cache!
             recommendations_limit: ragRecommendations,    // Truncates response in factory
             similar_items_augmentation_limit: ragAugmentation,
             not_seen: excludeSeen,
           },
           collaborative_filtering: {
             candidates_limit: cfCandidates,
-            llm_response_limit: cfRecommendations,        // Mapped to change prompt text & break cache!
+            llm_response_limit: cfLlmResponse,           // Mapped to change prompt text & break cache!
             recommendations_limit: cfRecommendations,     // Truncates response in factory
             similar_items_augmentation_limit: cfAugmentation,
             not_seen: excludeSeen,
@@ -323,12 +325,16 @@ function App() {
           onSetRetry={setRetry}
           ragCandidates={ragCandidates}
           onSetRagCandidates={setRagCandidates}
+          ragLlmResponse={ragLlmResponse}
+          onSetRagLlmResponse={setRagLlmResponse}
           ragRecommendations={ragRecommendations}
           onSetRagRecommendations={setRagRecommendations}
           ragAugmentation={ragAugmentation}
           onSetRagAugmentation={setRagAugmentation}
           cfCandidates={cfCandidates}
           onSetCfCandidates={setCfCandidates}
+          cfLlmResponse={cfLlmResponse}
+          onSetCfLlmResponse={setCfLlmResponse}
           cfRecommendations={cfRecommendations}
           onSetCfRecommendations={setCfRecommendations}
           cfAugmentation={cfAugmentation}

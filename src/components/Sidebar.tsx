@@ -24,6 +24,8 @@ interface SidebarProps {
   
   ragCandidates: number;
   onSetRagCandidates: (val: number) => void;
+  ragLlmResponse: number;                     // New prop for RAG LLM response limit
+  onSetRagLlmResponse: (val: number) => void;
   ragRecommendations: number;
   onSetRagRecommendations: (val: number) => void;
   ragAugmentation: number;
@@ -31,6 +33,8 @@ interface SidebarProps {
   
   cfCandidates: number;
   onSetCfCandidates: (val: number) => void;
+  cfLlmResponse: number;                      // New prop for CF LLM response limit
+  onSetCfLlmResponse: (val: number) => void;
   cfRecommendations: number;
   onSetCfRecommendations: (val: number) => void;
   cfAugmentation: number;
@@ -75,12 +79,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSetRetry,
   ragCandidates,
   onSetRagCandidates,
+  ragLlmResponse,
+  onSetRagLlmResponse,
   ragRecommendations,
   onSetRagRecommendations,
   ragAugmentation,
   onSetRagAugmentation,
   cfCandidates,
   onSetCfCandidates,
+  cfLlmResponse,
+  onSetCfLlmResponse,
   cfRecommendations,
   onSetCfRecommendations,
   cfAugmentation,
@@ -453,7 +461,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md border ${
                   !isWarmStart 
                     ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
-                    : 'bg-slate-950 border-slate-850 text-slate-500'
+                    : 'bg-slate-950 border-slate-855 text-slate-500'
                 }`}>
                   {!isWarmStart ? '🟢 Active' : '⚪ Inactive'}
                 </span>
@@ -486,15 +494,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     />
                   </div>
 
+                  {/* NEW SLIDER: LLM Max Generation Limit */}
                   <div className="space-y-1">
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-slate-400">
-                        LLM Recommendation Limit
+                        LLM Max Generation Limit (llm_response_limit)
                         {renderInfoTrigger(
-                          'LLM Recommendation Limit (RAG)',
-                          'Es el límite máximo de películas recomendadas que el LLM puede seleccionar a partir de la lista de candidatos inyectados. El LLM valida que las películas realmente coincidan con la intención de búsqueda e historial del usuario.',
-                          'Salida muy compacta y enfocada únicamente en los matches más evidentes y seguros.',
-                          'Salida de películas más extensa. Ideal para analizar la capacidad de discernimiento del LLM en espectros de contexto amplios.'
+                          'LLM Max Generation Limit',
+                          'Indica el valor de llm_response_limit que se inyecta directamente en la instrucción del prompt del LLM (ej. "Recommend up to {X} movies"). Alterar este valor cambia el texto del prompt, rompiendo el caché y forzando inferencias reales de Ollama.',
+                          'Instrucción compacta en el prompt. Ollama genera menos candidatos textuales, acelerando el proceso.',
+                          'Instrucción extendida. Ollama genera más candidatos textuales enriqueciendo las opciones.'
+                        )}
+                      </span>
+                      <span className="text-indigo-400 font-bold">{ragLlmResponse}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="20"
+                      disabled={isWarmStart}
+                      value={ragLlmResponse}
+                      onChange={(e) => onSetRagLlmResponse(Number(e.target.value))}
+                      className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">
+                        Final Recommendations Limit (recommendations_limit)
+                        {renderInfoTrigger(
+                          'Final Recommendations Limit',
+                          'Es el límite que toma tu recommendations_factory en el backend para recortar y truncar la respuesta final JSON enviada. Si es menor al límite de generación del LLM, permite podar resultados de manera programática.',
+                          'Salida del JSON final extremadamente compacta.',
+                          'Salida del JSON final extendida con más películas.'
                         )}
                       </span>
                       <span className="text-indigo-400 font-bold">{ragRecommendations}</span>
@@ -547,7 +580,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md border ${
                   isWarmStart 
                     ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 animate-pulse' 
-                    : 'bg-slate-950 border-slate-850 text-slate-500'
+                    : 'bg-slate-950 border-slate-855 text-slate-500'
                 }`}>
                   {isWarmStart ? '🟢 Active' : '🔒 Locked'}
                 </span>
@@ -596,15 +629,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     />
                   </div>
 
+                  {/* NEW SLIDER: CF LLM Max Generation Limit */}
                   <div className="space-y-1">
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-slate-400">
-                        CF LLM Recommendation Limit
+                        CF LLM Generation Limit (llm_response_limit)
                         {renderInfoTrigger(
-                          'CF LLM Recommendation Limit',
-                          'Es el límite máximo de recomendaciones colaborativas finales que el LLM filtrará e incluirá en la respuesta, garantizando que tengan sentido conceptual con tu prompt actual.',
-                          'Salida compacta y con un filtrado conceptual del LLM sumamente severo.',
-                          'Salida más permisiva. Ideal para evaluar la sinergia entre el modelo colaborativo y el juicio del LLM.'
+                          'CF LLM Generation Limit',
+                          'Configura el llm_response_limit inyectado directamente en el prompt colaborativo del LLM, instruyendo la cantidad máxima de recomendaciones textuales a generar.',
+                          'Ollama genera menos textos, acelerando radicalmente la inferencia.',
+                          'Ollama genera un bloque de texto final más numeroso.'
+                        )}
+                      </span>
+                      <span className="text-emerald-400 font-bold">{cfLlmResponse}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="20"
+                      disabled={!isWarmStart}
+                      value={cfLlmResponse}
+                      onChange={(e) => onSetCfLlmResponse(Number(e.target.value))}
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-emerald-400">
+                        CF Final Recommendations Limit (recommendations_limit)
+                        {renderInfoTrigger(
+                          'CF Final Recommendations Limit',
+                          'Límite de películas colaborativas finales que el LLM filtrará e incluirá en la respuesta final JSON truncada.',
+                          'Salida final muy recortada y directa.',
+                          'Salida final extendida.'
                         )}
                       </span>
                       <span className="text-emerald-400 font-bold">{cfRecommendations}</span>
@@ -622,7 +680,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                   <div className="space-y-1">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-400">
+                      <span className="text-emerald-400">
                         CF Diversity Augmentation
                         {renderInfoTrigger(
                           'CF Diversity Augmentation',
@@ -646,7 +704,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                   <div className="space-y-1">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-400">
+                      <span className="text-emerald-400">
                         K-Nearest Neighbors
                         {renderInfoTrigger(
                           'K-Nearest Neighbors (k)',
@@ -670,7 +728,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                   <div className="space-y-1">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-400">
+                      <span className="text-emerald-400">
                         Min Rating Threshold
                         {renderInfoTrigger(
                           'Min Rating Threshold',
@@ -701,7 +759,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Modal - Create User Profile */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-left text-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-left">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div className="p-6 border-b border-slate-800 bg-gradient-to-r from-violet-600/10 to-transparent flex justify-between items-center">
               <h3 className="text-lg font-bold text-slate-100 flex items-center space-x-2">
@@ -717,7 +775,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 text-left">
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-medium">Full Name *</label>
                   <input
@@ -742,7 +800,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4 text-left">
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-medium">Age</label>
                   <input
@@ -776,7 +834,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4 text-left">
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-medium">Nationality</label>
                   <input
@@ -809,7 +867,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1 text-left">
                 <label className="text-xs text-slate-400 font-medium flex items-center space-x-1">
                   <Filter className="w-3.5 h-3.5" />
                   <span>Favorite Movie Genres</span>

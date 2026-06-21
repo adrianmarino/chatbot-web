@@ -38,6 +38,7 @@ function App() {
   const [ratedMovies, setRatedMovies] = useState<Record<string, number>>({});
   const [isDevPanelOpen, setIsDevPanelOpen] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Left sidebar collapsible state
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null); // Active audited message ID
   const [appInitializing, setAppInitializing] = useState(true);
 
   // Initialize: load profiles and models
@@ -84,6 +85,7 @@ function App() {
     if (!activeProfile) {
       setMessages([]);
       setMeta(null);
+      setSelectedMessageId(null);
       setRatedMovies({});
       return;
     }
@@ -140,6 +142,7 @@ function App() {
       }
 
       setMeta(null);
+      setSelectedMessageId(null);
     }
 
     loadProfileContext();
@@ -178,6 +181,7 @@ function App() {
       await api.deleteHistory(activeProfile.email);
       setMessages([]);
       setMeta(null);
+      setSelectedMessageId(null);
     } catch (err) {
       console.error('Error clearing history:', err);
       alert('Failed to reset history.');
@@ -227,21 +231,24 @@ function App() {
         },
       });
 
+      const botMsgId = `bot-${Date.now()}`;
       setMessages((prev) => [
         ...prev,
         {
-          id: `bot-${Date.now()}`,
+          id: botMsgId,
           sender: 'bot',
           text: '', // Removed generic response text, rendering recommendations grid directly!
           timestamp: new Date(),
           recommendations: response.items, // Embed recommendations directly into this chat message
           queryText: text, // Embed the exact prompt query text so it can be re-sent on demand!
+          metadata: response.metadata || null, // Store metadata inside the message bubble!
         },
       ]);
 
       if (response.metadata) {
         setMeta(response.metadata);
       }
+      setSelectedMessageId(botMsgId); // Auto-select the newly generated message bubble!
     } catch (err: any) {
       console.error('Error getting recommendations:', err);
       setMessages((prev) => [
@@ -285,6 +292,11 @@ function App() {
       });
       throw err;
     }
+  };
+
+  const handleSelectMessage = (id: string, metadata: RecommendationsMetadata | null) => {
+    setSelectedMessageId(id);
+    setMeta(metadata); // Dynamically update the Developer Panel with selected message insights!
   };
 
   if (appInitializing) {
@@ -363,6 +375,8 @@ function App() {
               ratedMovies={ratedMovies}
               isSidebarOpen={isSidebarOpen}
               onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+              selectedMessageId={selectedMessageId}
+              onSelectMessage={handleSelectMessage}
             />
           </div>
         ) : (

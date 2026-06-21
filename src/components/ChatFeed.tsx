@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
-import { Send, Sparkles, Trash2, ArrowRight, Loader2, Bot, User, Menu, RotateCw } from 'lucide-react';
-import type { Recommendation } from '../services/api';
+import { Send, Sparkles, Trash2, ArrowRight, Loader2, Bot, User, Menu, RotateCw, CheckCircle2 } from 'lucide-react';
+import type { Recommendation, RecommendationsMetadata } from '../services/api';
 import { MovieGrid } from './MovieGrid';
 
 export interface ChatMessage {
@@ -11,6 +11,7 @@ export interface ChatMessage {
   status?: 'sending' | 'success' | 'error';
   recommendations?: Recommendation[];
   queryText?: string;
+  metadata?: RecommendationsMetadata | null;
 }
 
 interface ChatFeedProps {
@@ -23,6 +24,8 @@ interface ChatFeedProps {
   ratedMovies: Record<string, number>;
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
+  selectedMessageId: string | null;
+  onSelectMessage: (id: string, metadata: RecommendationsMetadata | null) => void;
 }
 
 const SUGGESTED_PROMPTS = [
@@ -50,6 +53,8 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
   ratedMovies,
   isSidebarOpen,
   onToggleSidebar,
+  selectedMessageId,
+  onSelectMessage,
 }) => {
   const [inputText, setInputText] = React.useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -286,6 +291,9 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           <div className="max-w-3xl mx-auto space-y-6 text-left">
             {messages.map((msg) => {
               const isUser = msg.sender === 'user';
+              const hasRecs = msg.recommendations && msg.recommendations.length > 0;
+              const isSelected = selectedMessageId === msg.id;
+
               return (
                 <div key={msg.id} className="space-y-4">
                   {/* Chat Bubble Row */}
@@ -304,11 +312,21 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
 
                       {/* Speech Bubble containing text and/or recommendations grid natively! */}
                       <div
-                        className={`rounded-2xl px-4 py-3 text-sm text-left shadow-lg ${
+                        onClick={() => {
+                          if (!isUser && hasRecs) {
+                            onSelectMessage(msg.id, msg.metadata || null);
+                          }
+                        }}
+                        className={`rounded-2xl px-4 py-3 text-sm text-left shadow-lg transition-all duration-200 ${
                           isUser
                             ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-medium shadow-indigo-500/5'
-                            : 'bg-slate-900 border border-slate-800/80 text-slate-200 leading-relaxed shadow-slate-950/20 w-full'
+                            : `bg-slate-900 border text-slate-200 leading-relaxed shadow-slate-950/20 w-full ${
+                                hasRecs ? 'cursor-pointer hover:border-violet-500/40 hover:bg-slate-900/80' : 'border-slate-800/80'
+                              } ${
+                                isSelected ? 'border-violet-500 ring-2 ring-violet-500/20 scale-[1.005] bg-slate-900/90' : 'border-slate-800/80'
+                              }`
                         }`}
+                        title={(!isUser && hasRecs) ? "Haga clic para ver los insights técnicos de este mensaje" : undefined}
                       >
                         {isUser ? (
                           msg.text
@@ -329,9 +347,21 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                             )}
                           </div>
                         )}
-                        <span className="block text-[10px] text-right mt-1.5 opacity-50 font-medium">
-                          {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                        
+                        {/* Footer row inside the bubble */}
+                        <div className="flex items-center justify-between mt-1.5 opacity-50 font-medium">
+                          {isSelected && !isUser && hasRecs ? (
+                            <span className="text-[9px] text-violet-400 font-bold uppercase tracking-wider flex items-center space-x-1 pl-1">
+                              <CheckCircle2 className="w-3 h-3 text-violet-400 animate-pulse" />
+                              <span>Active Insights View</span>
+                            </span>
+                          ) : (
+                            <span />
+                          )}
+                          <span className="text-[10px]">
+                            {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Refresh Button on User Bubble (rendered outside but next to the bubble) */}

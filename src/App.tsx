@@ -39,6 +39,7 @@ function App() {
   const [isDevPanelOpen, setIsDevPanelOpen] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Left sidebar collapsible state
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null); // Active audited message ID
+  const [activeCurl, setActiveCurl] = useState<string>(''); // Active audited CURL command
   const [appInitializing, setAppInitializing] = useState(true);
 
   // Initialize: load profiles and models
@@ -86,6 +87,7 @@ function App() {
       setMessages([]);
       setMeta(null);
       setSelectedMessageId(null);
+      setActiveCurl('');
       setRatedMovies({});
       return;
     }
@@ -143,6 +145,7 @@ function App() {
 
       setMeta(null);
       setSelectedMessageId(null);
+      setActiveCurl('');
     }
 
     loadProfileContext();
@@ -182,6 +185,7 @@ function App() {
       setMessages([]);
       setMeta(null);
       setSelectedMessageId(null);
+      setActiveCurl('');
     } catch (err) {
       console.error('Error clearing history:', err);
       alert('Failed to reset history.');
@@ -203,7 +207,7 @@ function App() {
     setIsLoading(true);
 
     try {
-      const response = await api.askRecommendation({
+      const queryPayload = {
         message: {
           author: activeProfile.email,
           content: text,
@@ -229,7 +233,15 @@ function App() {
             min_rating_by_user: cfMinRating,
           },
         },
-      });
+      };
+
+      // Generate exact copyable, bash-safe CURL request string
+      const apiHost = import.meta.env.VITE_API_URL || 'http://nonosoft.ddns.net:8080';
+      const curlUrl = `${apiHost}/api/v1/recommendations`;
+      const escapedBody = JSON.stringify(queryPayload, null, 2).replace(/'/g, "'\\''");
+      const curlStr = `curl -X POST "${curlUrl}" \\\n  -H "Content-Type: application/json" \\\n  -d '${escapedBody}'`;
+
+      const response = await api.askRecommendation(queryPayload);
 
       const botMsgId = `bot-${Date.now()}`;
       setMessages((prev) => [
@@ -242,6 +254,7 @@ function App() {
           recommendations: response.items, // Embed recommendations directly into this chat message
           queryText: text, // Embed the exact prompt query text so it can be re-sent on demand!
           metadata: response.metadata || null, // Store metadata inside the message bubble!
+          curlCommand: curlStr, // Store CURL command string!
         },
       ]);
 
@@ -249,6 +262,7 @@ function App() {
         setMeta(response.metadata);
       }
       setSelectedMessageId(botMsgId); // Auto-select the newly generated message bubble!
+      setActiveCurl(curlStr); // Set the active CURL command!
     } catch (err: any) {
       console.error('Error getting recommendations:', err);
       setMessages((prev) => [
@@ -294,9 +308,10 @@ function App() {
     }
   };
 
-  const handleSelectMessage = (id: string, metadata: RecommendationsMetadata | null) => {
+  const handleSelectMessage = (id: string, metadata: RecommendationsMetadata | null, curlCommand: string) => {
     setSelectedMessageId(id);
-    setMeta(metadata); // Dynamically update the Developer Panel with selected message insights!
+    setMeta(metadata);
+    setActiveCurl(curlCommand); // Dynamically update active audited CURL command!
   };
 
   if (appInitializing) {
@@ -398,6 +413,7 @@ function App() {
           metadata={meta}
           isOpen={isDevPanelOpen}
           onToggle={() => setIsDevPanelOpen(!isDevPanelOpen)}
+          curlCommand={activeCurl} // Pass down the audited curl command string
         />
       )}
     </div>

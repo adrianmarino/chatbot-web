@@ -267,10 +267,10 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
           onMouseEnter={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();
             setHoverHelp({
-              title: 'Candidatos Excluidos',
-              explanation: 'Indica cuántas películas candidatas extraídas de la base de datos (por RAG o CF) fueron rechazadas por el LLM al juzgar que no respondían a tu perfil actual o intención conversacional.',
-              lower: 'El LLM es muy permisivo o la consulta es idéntica a los candidatos.',
-              higher: 'Filtrado severo y estricto del LLM. Asegura alta coincidencia conceptual con tu búsqueda.',
+              title: 'Candidatos Excluidos (Post-LLM Filtering / Augmentation Mismatch)',
+              explanation: 'Representan las películas que fueron extraídas de la base de datos durante la fase de "Augmentation" (Búsqueda Vectorial por similitud a partir de los títulos que devolvió el LLM) pero que la RecommendationsFactory consideró que no eran lo suficientemente similares al título o año original sugerido por el LLM, o bien que ya habían sido agregadas previamente. Se excluyen en la etapa de Resolución final para mantener la precisión.',
+              lower: 'Alta precisión del RAG: los candidatos extraídos coincidieron casi a la perfección con lo que propuso el LLM (Cosine Similarity alto).',
+              higher: 'El Augmentation trajo mucha "basura": películas semánticamente lejanas al título/año propuesto por el LLM, por ende fueron descartadas.',
               rect,
             });
           }}

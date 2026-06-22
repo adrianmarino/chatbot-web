@@ -42,6 +42,7 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Left sidebar collapsible state
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null); // Active audited message ID
   const [activeCurl, setActiveCurl] = useState<string>(''); // Active audited CURL command
+  const [activeRawResponse, setActiveRawResponse] = useState<any>(null); // Active raw API response
   const [appInitializing, setAppInitializing] = useState(true);
 
   // Initialize: load profiles and models
@@ -155,6 +156,7 @@ function App() {
       setMeta(null);
       setSelectedMessageId(null);
       setActiveCurl('');
+      setActiveRawResponse(null);
     }
 
     loadProfileContext();
@@ -195,6 +197,7 @@ function App() {
       setMeta(null);
       setSelectedMessageId(null);
       setActiveCurl('');
+      setActiveRawResponse(null);
     } catch (err) {
       console.error('Error clearing history:', err);
       alert('Failed to reset history.');
@@ -264,6 +267,7 @@ function App() {
           queryText: text, // Embed the exact prompt query text so it can be re-sent on demand!
           metadata: response.metadata || null, // Store metadata inside the message bubble!
           curlCommand: curlStr, // Store CURL command string!
+          rawApiResponse: response, // Store raw API JSON!
         },
       ]);
 
@@ -272,6 +276,7 @@ function App() {
       }
       setSelectedMessageId(botMsgId); // Auto-select the newly generated message bubble!
       setActiveCurl(curlStr); // Set the active CURL command!
+      setActiveRawResponse(response); // Set the active raw API response!
     } catch (err: any) {
       console.error('Error getting recommendations:', err);
       setMessages((prev) => [
@@ -317,10 +322,11 @@ function App() {
     }
   };
 
-  const handleSelectMessage = (id: string, metadata: RecommendationsMetadata | null, curlCommand: string) => {
+  const handleSelectMessage = (id: string, metadata: RecommendationsMetadata | null, curlCommand: string, rawApiResponse?: any) => {
     setSelectedMessageId(id);
     setMeta(metadata);
     setActiveCurl(curlCommand); // Dynamically update active audited CURL command!
+    setActiveRawResponse(rawApiResponse || null);
   };
 
   if (appInitializing) {
@@ -424,6 +430,7 @@ function App() {
           isOpen={isDevPanelOpen}
           onToggle={() => setIsDevPanelOpen(!isDevPanelOpen)}
           curlCommand={activeCurl} // Pass down the audited curl command string
+          rawApiResponse={activeRawResponse} // Pass down the raw API response
         />
       )}
     </div>

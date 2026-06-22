@@ -14,6 +14,7 @@ export interface ChatMessage {
   queryText?: string;
   metadata?: RecommendationsMetadata | null;
   curlCommand?: string;
+  rawApiResponse?: any;
 }
 
 interface ChatFeedProps {
@@ -28,7 +29,7 @@ interface ChatFeedProps {
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
   selectedMessageId: string | null;
-  onSelectMessage: (id: string, metadata: RecommendationsMetadata | null, curlCommand: string) => void;
+  onSelectMessage: (id: string, metadata: RecommendationsMetadata | null, curlCommand: string, rawApiResponse?: any) => void;
 }
 
 const SUGGESTED_PROMPTS = [
@@ -400,7 +401,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                           <div
                             onClick={() => {
                               if (!isUser && hasRecs) {
-                                onSelectMessage(msg.id, msg.metadata || null, msg.curlCommand || '');
+                                onSelectMessage(msg.id, msg.metadata || null, msg.curlCommand || '', msg.rawApiResponse);
                               }
                             }}
                             className={`rounded-2xl px-4 py-3 text-sm text-left shadow-lg transition-all duration-200 ${

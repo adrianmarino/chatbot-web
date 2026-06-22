@@ -1,12 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Terminal, Code, Cpu, Clock, AlertTriangle, ChevronRight, ChevronLeft, EyeOff, Copy, Check } from 'lucide-react';
+import { Terminal, Code, Cpu, Clock, AlertTriangle, ChevronRight, ChevronLeft, EyeOff, Copy, Check, FileJson } from 'lucide-react';
 import type { RecommendationsMetadata } from '../services/api';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface DeveloperPanelProps {
   metadata: RecommendationsMetadata | null;
   isOpen: boolean;
   onToggle: () => void;
   curlCommand: string; // The curl command for the active audited query
+  rawApiResponse?: any; // The raw JSON API response
 }
 
 interface HoverHelp {
@@ -22,8 +25,9 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
   isOpen,
   onToggle,
   curlCommand,
+  rawApiResponse,
 }) => {
-  const [activeTab, setActiveTab] = useState<'logs' | 'prompt' | 'raw' | 'excluded' | 'curl'>('logs');
+  const [activeTab, setActiveTab] = useState<'logs' | 'prompt' | 'raw' | 'excluded' | 'curl' | 'json'>('logs');
   const [width, setWidth] = useState(() => {
     const saved = localStorage.getItem('chatbot_dev_panel_width');
     return saved ? parseInt(saved, 10) : 768;
@@ -282,14 +286,15 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
         </div>
       </div>
 
-      {/* Tabs (Horizontal Navigation - 5 tabs) */}
+      {/* Tabs (Horizontal Navigation - 6 tabs) */}
       <div className="flex border-b border-slate-800 bg-slate-950/40 p-2 shrink-0 text-xs gap-2 pl-6 overflow-x-auto">
         {[
           { id: 'logs', label: 'Engine Execution Logs', icon: Terminal },
           { id: 'prompt', label: 'Raw Prompt Template', icon: Code },
           { id: 'raw', label: 'Verbatim LLM Response', icon: Cpu },
           { id: 'excluded', label: 'Excluded Movies List', icon: EyeOff },
-          { id: 'curl', label: 'CURL Request', icon: Terminal }, // NEW TAB!
+          { id: 'curl', label: 'CURL Request', icon: Terminal },
+          { id: 'json', label: 'REST JSON Response', icon: FileJson }, // NEW TAB!
         ].map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -421,6 +426,65 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
               ) : (
                 <div className="text-slate-600 italic py-8 text-center font-sans">
                   No active query captured. Make a request to audit its raw CURL command.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* JSON RESPONSE TAB PANEL */}
+        {activeTab === 'json' && (
+          <div className="space-y-4 h-full flex flex-col">
+            <div className="flex items-center justify-between font-sans">
+              <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">
+                Raw API JSON Response
+              </span>
+              {rawApiResponse && (
+                <button
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(JSON.stringify(rawApiResponse, null, 2));
+                      setIsCopied(true);
+                      setTimeout(() => setIsCopied(false), 2000);
+                    } catch (err) {
+                      console.error('Failed to copy text:', err);
+                    }
+                  }}
+                  className={`flex items-center space-x-1 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all duration-150 cursor-pointer ${
+                    isCopied
+                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                      : 'bg-slate-950 border-slate-850 text-slate-300 hover:bg-slate-855 hover:text-white'
+                  }`}
+                  title="Copiar JSON al portapapeles"
+                >
+                  {isCopied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy JSON</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-2xl border border-slate-850 overflow-auto flex-1 relative shadow-inner">
+              {rawApiResponse ? (
+                <SyntaxHighlighter
+                  language="json"
+                  style={vscDarkPlus}
+                  wrapLongLines={true}
+                  customStyle={{ background: 'transparent', padding: 0, margin: 0, fontSize: '11px' }}
+                >
+                  {JSON.stringify(rawApiResponse, null, 2)}
+                </SyntaxHighlighter>
+              ) : (
+                <div className="text-slate-600 italic py-8 text-center font-sans">
+                  No active API response captured. Make a request to see the raw JSON.
                 </div>
               )}
             </div>

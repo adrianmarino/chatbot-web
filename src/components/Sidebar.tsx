@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter, Sliders, Database, Users, Info, BookOpen, ExternalLink, FolderGit, Wind, Save } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter, Sliders, Database, Users, Info, BookOpen, ExternalLink, FolderGit, Wind, Save, Download, Upload } from 'lucide-react';
 import type { UserProfile } from '../services/api';
 import { API_HOST } from '../services/api';
 
@@ -127,21 +127,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const [savedPresets, setSavedPresets] = useState<SavedSettingsProfile[]>([]);
   const [selectedPresetIndex, setSelectedPresetIndex] = useState<number | ''>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load presets when profile changes
   useEffect(() => {
     if (activeProfile?.email) {
       const stored = localStorage.getItem(`chatbot_presets_${activeProfile.email}`);
+      let parsed: SavedSettingsProfile[] = [];
       if (stored) {
         try {
-          setSavedPresets(JSON.parse(stored));
+          parsed = JSON.parse(stored);
         } catch (e) {
-          setSavedPresets([]);
+          parsed = [];
+        }
+      }
+      setSavedPresets(parsed);
+
+      const lastIndex = localStorage.getItem(`chatbot_last_preset_${activeProfile.email}`);
+      if (lastIndex !== null && lastIndex !== '' && !isNaN(Number(lastIndex))) {
+        const index = Number(lastIndex);
+        if (index >= 0 && index < parsed.length) {
+          setSelectedPresetIndex(index);
+          handleLoadPresetDirect(parsed[index]);
+        } else {
+          setSelectedPresetIndex('');
         }
       } else {
-        setSavedPresets([]);
+        setSelectedPresetIndex('');
       }
-      setSelectedPresetIndex('');
     } else {
       setSavedPresets([]);
       setSelectedPresetIndex('');
@@ -152,6 +165,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
     if (activeProfile?.email) {
       localStorage.setItem(`chatbot_presets_${activeProfile.email}`, JSON.stringify(presets));
       setSavedPresets(presets);
+    }
+  };
+
+  const setAndSaveSelectedPresetIndex = (index: number | '') => {
+    setSelectedPresetIndex(index);
+    if (activeProfile?.email) {
+      localStorage.setItem(`chatbot_last_preset_${activeProfile.email}`, String(index));
     }
   };
 
@@ -177,13 +197,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       cfMinRating,
     };
     
-    savePresetsToStorage([...savedPresets, newPreset]);
-    setSelectedPresetIndex(savedPresets.length); // point to newly added item
+    const updated = [...savedPresets, newPreset];
+    savePresetsToStorage(updated);
+    setAndSaveSelectedPresetIndex(updated.length - 1);
   };
 
-  const handleLoadPreset = (index: number) => {
-    const preset = savedPresets[index];
-    if (!preset) return;
+  const handleLoadPresetDirect = (preset: SavedSettingsProfile) => {
     onSelectModel(preset.selectedModel);
     onToggleMetadata(preset.includeMetadata);
     onToggleExcludeSeen(preset.excludeSeen);
@@ -200,13 +219,60 @@ export const Sidebar: React.FC<SidebarProps> = ({
     onSetCfMinRating(preset.cfMinRating);
   };
 
+  const handleLoadPreset = (index: number) => {
+    const preset = savedPresets[index];
+    if (!preset) return;
+    handleLoadPresetDirect(preset);
+    setAndSaveSelectedPresetIndex(index);
+  };
+
   const handleDeletePreset = (index: number) => {
     if (confirm('Delete this preset?')) {
       const updated = [...savedPresets];
       updated.splice(index, 1);
       savePresetsToStorage(updated);
-      setSelectedPresetIndex('');
+      setAndSaveSelectedPresetIndex('');
     }
+  };
+
+  const handleExportPresets = () => {
+    const dataStr = JSON.stringify(savedPresets, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `chatbot-presets-${activeProfile?.email || 'export'}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportPresets = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const imported = JSON.parse(e.target?.result as string) as SavedSettingsProfile[];
+        if (!Array.isArray(imported)) throw new Error('Invalid format');
+        
+        if (savedPresets.length > 0) {
+          const overwrite = confirm('Do you want to completely overwrite your existing presets? (Cancel to append them instead)');
+          if (overwrite) {
+            savePresetsToStorage(imported);
+            setAndSaveSelectedPresetIndex('');
+          } else {
+            savePresetsToStorage([...savedPresets, ...imported]);
+          }
+        } else {
+          savePresetsToStorage(imported);
+        }
+      } catch (err) {
+        alert('Failed to import presets. Invalid JSON format.');
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   // Save the showSettings state in localStorage
@@ -591,12 +657,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
                 <button
                   onClick={handleSavePreset}
-                  className="px-2.5 py-1.5 bg-violet-600/20 hover:bg-violet-600/40 text-violet-300 border border-violet-500/30 text-xs font-bold rounded-lg transition shrink-0 flex items-center space-x-1"
-                  title="Save current configuration"
+                  className="p-1.5 bg-violet-600/20 hover:bg-violet-600/40 text-violet-300 border border-violet-500/30 rounded-lg transition shrink-0"
+                  title="Save current configuration as new preset"
                 >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>Save</span>
+                  <Save className="w-4 h-4" />
                 </button>
+                <button
+                  onClick={handleExportPresets}
+                  className="p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition shrink-0"
+                  title="Export presets to JSON file"
+                  disabled={savedPresets.length === 0}
+                >
+                  <Download className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-1.5 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded-lg transition shrink-0"
+                  title="Import presets from JSON file"
+                >
+                  <Upload className="w-4 h-4" />
+                </button>
+                <input
+                  type="file"
+                  accept=".json"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={handleImportPresets}
+                />
               </div>
             </div>
 

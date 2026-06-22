@@ -1,7 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter, Sliders, Database, Users, Info, BookOpen, ExternalLink, FolderGit, Wind } from 'lucide-react';
+import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter, Sliders, Database, Users, Info, BookOpen, ExternalLink, FolderGit, Wind, Save } from 'lucide-react';
 import type { UserProfile } from '../services/api';
 import { API_HOST } from '../services/api';
+
+export interface SavedSettingsProfile {
+  name: string;
+  selectedModel: string;
+  includeMetadata: boolean;
+  excludeSeen: boolean;
+  retry: number;
+  ragCandidates: number;
+  ragLlmResponse: number;
+  ragRecommendations: number;
+  ragAugmentation: number;
+  cfCandidates: number;
+  cfLlmResponse: number;
+  cfRecommendations: number;
+  cfAugmentation: number;
+  cfKUsers: number;
+  cfMinRating: number;
+}
 
 interface SidebarProps {
   profiles: UserProfile[];
@@ -106,6 +124,90 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return localStorage.getItem('chatbot_show_settings') === 'true';
   });
   const [hoverHelp, setHoverHelp] = useState<HoverHelp | null>(null);
+
+  const [savedPresets, setSavedPresets] = useState<SavedSettingsProfile[]>([]);
+  const [selectedPresetIndex, setSelectedPresetIndex] = useState<number | ''>('');
+
+  // Load presets when profile changes
+  useEffect(() => {
+    if (activeProfile?.email) {
+      const stored = localStorage.getItem(`chatbot_presets_${activeProfile.email}`);
+      if (stored) {
+        try {
+          setSavedPresets(JSON.parse(stored));
+        } catch (e) {
+          setSavedPresets([]);
+        }
+      } else {
+        setSavedPresets([]);
+      }
+      setSelectedPresetIndex('');
+    } else {
+      setSavedPresets([]);
+      setSelectedPresetIndex('');
+    }
+  }, [activeProfile?.email]);
+
+  const savePresetsToStorage = (presets: SavedSettingsProfile[]) => {
+    if (activeProfile?.email) {
+      localStorage.setItem(`chatbot_presets_${activeProfile.email}`, JSON.stringify(presets));
+      setSavedPresets(presets);
+    }
+  };
+
+  const handleSavePreset = () => {
+    const name = prompt('Enter a name for this configuration preset:');
+    if (!name) return;
+    
+    const newPreset: SavedSettingsProfile = {
+      name,
+      selectedModel,
+      includeMetadata,
+      excludeSeen,
+      retry,
+      ragCandidates,
+      ragLlmResponse,
+      ragRecommendations,
+      ragAugmentation,
+      cfCandidates,
+      cfLlmResponse,
+      cfRecommendations,
+      cfAugmentation,
+      cfKUsers,
+      cfMinRating,
+    };
+    
+    savePresetsToStorage([...savedPresets, newPreset]);
+    setSelectedPresetIndex(savedPresets.length); // point to newly added item
+  };
+
+  const handleLoadPreset = (index: number) => {
+    const preset = savedPresets[index];
+    if (!preset) return;
+    onSelectModel(preset.selectedModel);
+    onToggleMetadata(preset.includeMetadata);
+    onToggleExcludeSeen(preset.excludeSeen);
+    onSetRetry(preset.retry);
+    onSetRagCandidates(preset.ragCandidates);
+    onSetRagLlmResponse(preset.ragLlmResponse);
+    onSetRagRecommendations(preset.ragRecommendations);
+    onSetRagAugmentation(preset.ragAugmentation);
+    onSetCfCandidates(preset.cfCandidates);
+    onSetCfLlmResponse(preset.cfLlmResponse);
+    onSetCfRecommendations(preset.cfRecommendations);
+    onSetCfAugmentation(preset.cfAugmentation);
+    onSetCfKUsers(preset.cfKUsers);
+    onSetCfMinRating(preset.cfMinRating);
+  };
+
+  const handleDeletePreset = (index: number) => {
+    if (confirm('Delete this preset?')) {
+      const updated = [...savedPresets];
+      updated.splice(index, 1);
+      savePresetsToStorage(updated);
+      setSelectedPresetIndex('');
+    }
+  };
 
   // Save the showSettings state in localStorage
   useEffect(() => {
@@ -450,6 +552,54 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {showSettings && (
           <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-5 text-left border-t border-slate-800/40 pt-3 shadow-inner">
+            {/* Presets Section */}
+            <div className="space-y-3">
+              <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider flex items-center space-x-1">
+                <Database className="w-3.5 h-3.5 text-blue-400" />
+                <span>Saved Presets</span>
+              </span>
+              <div className="flex items-center space-x-2">
+                <div className="relative flex-1">
+                  <select
+                    value={selectedPresetIndex}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSelectedPresetIndex(val === '' ? '' : Number(val));
+                      if (val !== '') {
+                        handleLoadPreset(Number(val));
+                      }
+                    }}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-violet-500 transition appearance-none cursor-pointer pr-6"
+                  >
+                    <option value="">-- Load a Preset --</option>
+                    {savedPresets.map((p, idx) => (
+                      <option key={idx} value={idx}>{p.name}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <span className="text-[9px]">▼</span>
+                  </div>
+                </div>
+                {selectedPresetIndex !== '' && (
+                  <button
+                    onClick={() => handleDeletePreset(Number(selectedPresetIndex))}
+                    className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition shrink-0"
+                    title="Delete Preset"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+                <button
+                  onClick={handleSavePreset}
+                  className="px-2.5 py-1.5 bg-violet-600/20 hover:bg-violet-600/40 text-violet-300 border border-violet-500/30 text-xs font-bold rounded-lg transition shrink-0 flex items-center space-x-1"
+                  title="Save current configuration"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Save</span>
+                </button>
+              </div>
+            </div>
+
             {/* Global Settings */}
             <div className="space-y-3">
               <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider flex items-center space-x-1">

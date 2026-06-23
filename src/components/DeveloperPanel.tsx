@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Terminal, Code, Cpu, Clock, AlertTriangle, ChevronRight, ChevronLeft, EyeOff, Copy, Check, FileJson } from 'lucide-react';
 import type { RecommendationsMetadata } from '../services/api';
-import { JsonView, darkStyles } from 'react-json-view-lite';
+import { JsonView } from 'react-json-view-lite';
 import 'react-json-view-lite/dist/index.css';
 
 interface DeveloperPanelProps {
@@ -483,7 +483,22 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
                   <JsonView 
                     data={rawApiResponse} 
                     shouldExpandNode={(level) => level < 4} 
-                    style={darkStyles}
+                    style={{
+                      container: 'font-mono text-[11px] text-slate-300 bg-transparent break-words',
+                      basicChildStyle: 'pl-4',
+                      collapseIcon: 'cursor-pointer text-slate-500 hover:text-slate-300 mr-1 select-none',
+                      expandIcon: 'cursor-pointer text-slate-500 hover:text-slate-300 mr-1 select-none',
+                      collapsedContent: 'text-slate-500 italic cursor-pointer select-none',
+                      label: 'text-violet-400 font-bold mr-1',
+                      nullValue: 'text-slate-500 italic',
+                      undefinedValue: 'text-slate-500 italic',
+                      numberValue: 'text-emerald-400',
+                      stringValue: 'text-indigo-300 break-words',
+                      booleanValue: 'text-rose-400 font-bold',
+                      otherValue: 'text-slate-300',
+                      punctuation: 'text-slate-500',
+                      childFieldsContainer: ''
+                    }}
                   />
                 </div>
               ) : (

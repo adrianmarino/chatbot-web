@@ -479,13 +479,13 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
 
             <div className="bg-slate-950 p-4 rounded-2xl border border-slate-850 overflow-auto flex-1 relative shadow-inner">
               {rawApiResponse ? (
-                <div className="json-view-container text-base font-mono w-full">
+                <div className="json-view-container text-[11px] font-mono w-full">
                   <JsonView 
                     data={rawApiResponse} 
                     shouldExpandNode={(level) => level < 4} 
                     style={{
                       ...darkStyles,
-                      container: `!font-mono !text-base !text-slate-300 !bg-transparent break-words`,
+                      container: `!font-mono !text-[11px] !text-slate-300 !bg-transparent break-words`,
                       basicChildStyle: `pl-4 my-1`,
                       collapseIcon: `cursor-pointer !text-slate-500 hover:!text-white select-none after:content-['▾'] after:pr-1.5`,
                       expandIcon: `cursor-pointer !text-slate-500 hover:!text-white select-none after:content-['▸'] after:pr-1.5`,

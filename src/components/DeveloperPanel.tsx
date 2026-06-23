@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Terminal, Code, Cpu, Clock, AlertTriangle, ChevronRight, ChevronLeft, EyeOff, Copy, Check, FileJson } from 'lucide-react';
 import type { RecommendationsMetadata } from '../services/api';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { JsonView, darkStyles } from 'react-json-view-lite';
+import 'react-json-view-lite/dist/index.css';
 
 interface DeveloperPanelProps {
   metadata: RecommendationsMetadata | null;
@@ -439,7 +439,11 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
               <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">
                 Raw API JSON Response
               </span>
-              {rawApiResponse && (
+              <div className="flex items-center space-x-2">
+                <span className="text-[9px] text-slate-500 italic mr-2">
+                  (Click any arrow to collapse/expand nodes)
+                </span>
+                {rawApiResponse && (
                 <button
                   onClick={async () => {
                     try {
@@ -470,18 +474,18 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
                   )}
                 </button>
               )}
+              </div>
             </div>
 
             <div className="bg-slate-950 p-4 rounded-2xl border border-slate-850 overflow-auto flex-1 relative shadow-inner">
               {rawApiResponse ? (
-                <SyntaxHighlighter
-                  language="json"
-                  style={vscDarkPlus}
-                  wrapLongLines={true}
-                  customStyle={{ background: 'transparent', padding: 0, margin: 0, fontSize: '11px' }}
-                >
-                  {JSON.stringify(rawApiResponse, null, 2)}
-                </SyntaxHighlighter>
+                <div className="json-view-container text-[11px] font-mono w-full">
+                  <JsonView 
+                    data={rawApiResponse} 
+                    shouldExpandNode={(level) => level < 4} 
+                    style={darkStyles}
+                  />
+                </div>
               ) : (
                 <div className="text-slate-600 italic py-8 text-center font-sans">
                   No active API response captured. Make a request to see the raw JSON.

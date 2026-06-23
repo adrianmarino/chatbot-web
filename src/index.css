@@ -30,4 +30,4 @@
 /* Hover effect on Thumb */
 ::-webkit-scrollbar-thumb:hover {
   background-color: rgba(139, 92, 246, 0.35);
-}
+}.json-view-container { word-break: break-all; white-space: pre-wrap; }

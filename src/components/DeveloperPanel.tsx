@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Terminal, Code, Cpu, Clock, AlertTriangle, ChevronRight, ChevronLeft, EyeOff, Copy, Check, FileJson } from 'lucide-react';
 import type { RecommendationsMetadata } from '../services/api';
-import { JsonView } from 'react-json-view-lite';
+import { JsonView, darkStyles } from 'react-json-view-lite';
 import 'react-json-view-lite/dist/index.css';
 
 interface DeveloperPanelProps {
@@ -479,25 +479,25 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
 
             <div className="bg-slate-950 p-4 rounded-2xl border border-slate-850 overflow-auto flex-1 relative shadow-inner">
               {rawApiResponse ? (
-                <div className="json-view-container text-[11px] font-mono w-full">
+                <div className="json-view-container text-base font-mono w-full">
                   <JsonView 
                     data={rawApiResponse} 
                     shouldExpandNode={(level) => level < 4} 
                     style={{
-                      container: 'font-mono text-[11px] text-slate-300 bg-transparent break-words',
-                      basicChildStyle: 'pl-4',
-                      collapseIcon: 'cursor-pointer text-slate-500 hover:text-slate-300 mr-1 select-none',
-                      expandIcon: 'cursor-pointer text-slate-500 hover:text-slate-300 mr-1 select-none',
-                      collapsedContent: 'text-slate-500 italic cursor-pointer select-none',
-                      label: 'text-violet-400 font-bold mr-1',
-                      nullValue: 'text-slate-500 italic',
-                      undefinedValue: 'text-slate-500 italic',
-                      numberValue: 'text-emerald-400',
-                      stringValue: 'text-indigo-300 break-words',
-                      booleanValue: 'text-rose-400 font-bold',
-                      otherValue: 'text-slate-300',
-                      punctuation: 'text-slate-500',
-                      childFieldsContainer: ''
+                      ...darkStyles,
+                      container: `${darkStyles.container} font-mono text-base text-slate-300 bg-transparent break-words`,
+                      basicChildStyle: `${darkStyles.basicChildStyle} pl-4 my-1`,
+                      collapseIcon: `${darkStyles.collapseIcon} cursor-pointer text-slate-500 hover:text-white mr-1 select-none`,
+                      expandIcon: `${darkStyles.expandIcon} cursor-pointer text-slate-500 hover:text-white mr-1 select-none`,
+                      collapsedContent: `${darkStyles.collapsedContent} text-slate-500 italic cursor-pointer select-none px-1`,
+                      label: `${darkStyles.label} text-violet-400 font-bold mr-1`,
+                      nullValue: `${darkStyles.nullValue} text-slate-500 italic`,
+                      undefinedValue: `${darkStyles.undefinedValue} text-slate-500 italic`,
+                      numberValue: `${darkStyles.numberValue} text-emerald-400`,
+                      stringValue: `${darkStyles.stringValue} text-indigo-300 break-words`,
+                      booleanValue: `${darkStyles.booleanValue} text-rose-400 font-bold`,
+                      otherValue: `${darkStyles.otherValue} text-slate-300`,
+                      punctuation: `${darkStyles.punctuation} text-slate-500`
                     }}
                   />
                 </div>

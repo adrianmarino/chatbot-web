@@ -38,7 +38,9 @@ function App() {
   const [meta, setMeta] = useState<RecommendationsMetadata | null>(null);
   
   const [ratedMovies, setRatedMovies] = useState<Record<string, number>>({});
-  const [isDevPanelOpen, setIsDevPanelOpen] = useState(true);
+  const [isDevPanelOpen, setIsDevPanelOpen] = useState(() => {
+    return localStorage.getItem('chatbot_dev_panel_open') !== 'false';
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Left sidebar collapsible state
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null); // Active audited message ID
   const [activeCurl, setActiveCurl] = useState<string>(''); // Active audited CURL command
@@ -90,6 +92,11 @@ function App() {
       localStorage.setItem('chatbot_selected_model', selectedModel);
     }
   }, [selectedModel]);
+
+  // Save dev panel open state
+  useEffect(() => {
+    localStorage.setItem('chatbot_dev_panel_open', String(isDevPanelOpen));
+  }, [isDevPanelOpen]);
 
   // When active profile changes: load their interactions and chat history
   useEffect(() => {

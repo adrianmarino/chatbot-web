@@ -176,11 +176,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const handleSavePreset = () => {
-    const name = prompt('Enter a name for this configuration preset:');
-    if (!name) return;
+    let isUpdate = false;
+    let targetIndex = -1;
+    let presetName = '';
+
+    if (selectedPresetIndex !== '') {
+      targetIndex = Number(selectedPresetIndex);
+      const currentPreset = savedPresets[targetIndex];
+      if (currentPreset) {
+        const doUpdate = confirm(`Update existing preset "${currentPreset.name}"?\n\nClick OK to update it with current values, or Cancel to save as a new preset.`);
+        if (doUpdate) {
+          isUpdate = true;
+          presetName = currentPreset.name;
+        }
+      }
+    }
+
+    if (!isUpdate) {
+      const namePrompt = prompt('Enter a name for this configuration preset:');
+      if (!namePrompt) return;
+      presetName = namePrompt;
+    }
     
     const newPreset: SavedSettingsProfile = {
-      name,
+      name: presetName,
       selectedModel,
       includeMetadata,
       excludeSeen,
@@ -197,9 +216,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
       cfMinRating,
     };
     
-    const updated = [...savedPresets, newPreset];
-    savePresetsToStorage(updated);
-    setAndSaveSelectedPresetIndex(updated.length - 1);
+    if (isUpdate) {
+      const updated = [...savedPresets];
+      updated[targetIndex] = newPreset;
+      savePresetsToStorage(updated);
+      // Index remains the same
+    } else {
+      const updated = [...savedPresets, newPreset];
+      savePresetsToStorage(updated);
+      setAndSaveSelectedPresetIndex(updated.length - 1);
+    }
   };
 
   const handleLoadPresetDirect = (preset: SavedSettingsProfile) => {

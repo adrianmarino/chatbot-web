@@ -485,19 +485,19 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
                     shouldExpandNode={(level) => level < 4} 
                     style={{
                       ...darkStyles,
-                      container: `${darkStyles.container} font-mono text-base text-slate-300 bg-transparent break-words`,
-                      basicChildStyle: `${darkStyles.basicChildStyle} pl-4 my-1`,
-                      collapseIcon: `${darkStyles.collapseIcon} cursor-pointer text-slate-500 hover:text-white mr-1 select-none`,
-                      expandIcon: `${darkStyles.expandIcon} cursor-pointer text-slate-500 hover:text-white mr-1 select-none`,
-                      collapsedContent: `${darkStyles.collapsedContent} text-slate-500 italic cursor-pointer select-none px-1`,
-                      label: `${darkStyles.label} text-violet-400 font-bold mr-1`,
-                      nullValue: `${darkStyles.nullValue} text-slate-500 italic`,
-                      undefinedValue: `${darkStyles.undefinedValue} text-slate-500 italic`,
-                      numberValue: `${darkStyles.numberValue} text-emerald-400`,
-                      stringValue: `${darkStyles.stringValue} text-indigo-300 break-words`,
-                      booleanValue: `${darkStyles.booleanValue} text-rose-400 font-bold`,
-                      otherValue: `${darkStyles.otherValue} text-slate-300`,
-                      punctuation: `${darkStyles.punctuation} text-slate-500`
+                      container: `!font-mono !text-base !text-slate-300 !bg-transparent break-words`,
+                      basicChildStyle: `pl-4 my-1`,
+                      collapseIcon: `cursor-pointer !text-slate-500 hover:!text-white select-none after:content-['▾'] after:pr-1.5`,
+                      expandIcon: `cursor-pointer !text-slate-500 hover:!text-white select-none after:content-['▸'] after:pr-1.5`,
+                      collapsedContent: `!text-slate-500 italic cursor-pointer select-none px-1 after:content-['...']`,
+                      label: `!text-violet-400 font-bold mr-1.5`,
+                      nullValue: `!text-slate-500 italic`,
+                      undefinedValue: `!text-slate-500 italic`,
+                      numberValue: `!text-emerald-400`,
+                      stringValue: `!text-indigo-300 break-words`,
+                      booleanValue: `!text-rose-400 font-bold`,
+                      otherValue: `!text-slate-300`,
+                      punctuation: `!text-slate-500 font-bold mr-0.5`
                     }}
                   />
                 </div>

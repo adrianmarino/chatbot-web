@@ -93,3 +93,85 @@ To package the app for production and host it directly from your `chat-bot-api` 
    ```
 
 3. Start or reload your backend. Now, visiting **`http://localhost:8080/`** (or your skynet domain) will serve the full web client!
+
+---
+
+## ⚙️ Registro como Servicio systemd (`--user`)
+
+El proyecto incluye la definición de un servicio systemd de usuario (`systemd --user`) para correr la aplicación en segundo plano en **skynet**, similar a como se configuran `airflow`, `chat-bot-api` y otros módulos del ecosistema.
+
+### 1. Configuración (`config.conf`)
+
+En la raíz del proyecto se encuentra el archivo `config.conf` donde puedes configurar el host, puerto y comando npm a ejecutar:
+
+```bash
+# config.conf
+SERVICE_NAME="Chatbot Web"
+PROCESS_NAME="vite"
+HOST="0.0.0.0"
+PORT="5173"
+NPM_SCRIPT="dev"  # "dev" para desarrollo (HMR) o "preview" para producción-preview
+```
+
+### 2. Creación del Enlace Simbólico en el Home
+
+Para que el servicio encuentre la ruta de trabajo correctamente, crea un enlace simbólico en tu home (`~`) que apunte a la ubicación real del proyecto:
+
+```bash
+ln -s /home/adrian/development/personal/maestria/chatbot-web /home/adrian/chatbot-web
+```
+
+### 3. Registro del Servicio
+
+Crea un enlace simbólico de la definición del servicio en la carpeta de servicios de usuario de systemd:
+
+```bash
+mkdir -p ~/.config/systemd/user/
+ln -s /home/adrian/chatbot-web/chatbot-web.service ~/.config/systemd/user/chatbot-web.service
+```
+
+### 4. Recargar el Demonio de systemd de Usuario
+
+Indica a systemd que vuelva a escanear los archivos de configuración:
+
+```bash
+systemctl --user daemon-reload
+```
+
+### 5. Comandos de Control del Servicio
+
+Usa los siguientes comandos para manejar el servicio como usuario (sin necesidad de `sudo`):
+
+*   **Iniciar el servicio:**
+    ```bash
+    systemctl --user start chatbot-web
+    ```
+*   **Detener el servicio:**
+    ```bash
+    systemctl --user stop chatbot-web
+    ```
+*   **Habilitar inicio automático** (para que arranque solo al encender el servidor):
+    ```bash
+    systemctl --user enable chatbot-web
+    ```
+*   **Deshabilitar inicio automático:**
+    ```bash
+    systemctl --user disable chatbot-web
+    ```
+*   **Verificar el estado del servicio:**
+    ```bash
+    systemctl --user status chatbot-web
+    ```
+
+### 6. Visualización de Logs
+
+Para ver la salida y logs del servidor, puedes hacerlo de dos formas:
+
+1.  Usando `journalctl`:
+    ```bash
+    journalctl --user -u chatbot-web -f
+    ```
+2.  Leyendo directamente el archivo de logs temporal:
+    ```bash
+    tail -f /var/tmp/chatbot-web.log
+    ```

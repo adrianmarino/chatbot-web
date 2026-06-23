@@ -1,0 +1,42 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Constants
+# -----------------------------------------------------------------------------
+ABSPATH=$(readlink -f $0)
+ABSDIR=$(dirname $ABSPATH)
+# -----------------------------------------------------------------------------
+# Imports
+# -----------------------------------------------------------------------------
+source "$ABSDIR/../config.conf"
+# -----------------------------------------------------------------------------
+# Functions
+# -----------------------------------------------------------------------------
+function get_pit_by_port() {
+    PORT=$1
+    ss -lptn "sport = :$PORT" | awk -F'[(),]' '{for(i=1;i<=NF;i++) if($i~/pid=/) print substr($i,5)}'
+}
+
+function get_pit_by_name() {
+    pgrep -f "$1" | head -n 1
+}
+# -----------------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------------
+echo "Stopping $SERVICE_NAME..."
+
+PROCESS_PID=$(get_pit_by_port $PORT)
+
+if [ -z "$PROCESS_PID" ]; then
+    echo "No process found on port $PORT. Trying fallback to process name '$PROCESS_NAME'..."
+    PROCESS_PID=$(get_pit_by_name "$PROCESS_NAME")
+fi
+
+if [ -z "$PROCESS_PID" ]; then
+    echo "Service is not running."
+else
+    echo "Found PID(s): $PROCESS_PID. Killing process..."
+    for PID in $PROCESS_PID; do
+        kill -9 $PID
+    done
+fi
+# -----------------------------------------------------------------------------

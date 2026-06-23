@@ -1,0 +1,16 @@
+[Unit]
+Description=Chatbot Web Client for %u user
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=%h/chatbot-web
+ExecStart=%h/chatbot-web/bin/start
+ExecStop=%h/chatbot-web/bin/stop
+TimeoutStartSec=0
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

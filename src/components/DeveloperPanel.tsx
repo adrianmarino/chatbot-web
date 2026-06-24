@@ -224,15 +224,17 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
       />
 
       {/* Header */}
-      <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 pl-6 shrink-0">
-        <div className="flex items-center space-x-2 text-slate-300 font-bold text-sm">
-          <Cpu className="w-4 h-4 text-violet-400" />
-          <span>Research & Engine Insights Console</span>
+      <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 px-4 md:pl-6 shrink-0">
+        <div className="flex items-center space-x-2 text-slate-300 font-bold text-sm min-w-0">
+          <Cpu className="w-4 h-4 text-violet-400 shrink-0" />
+          <span className="truncate hidden sm:inline">Research & Engine Insights Console</span>
+          <span className="truncate sm:hidden">Engine Insights</span>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 shrink-0">
           <button
             onClick={onToggle}
-            className="p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition"
+            type="button"
+            className="p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition cursor-pointer"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -240,7 +242,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
       </div>
 
       {/* Metric Summary Cards */}
-      <div className="p-4 grid grid-cols-2 gap-4 shrink-0 border-b border-slate-800 bg-slate-950/20 pl-6">
+      <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 shrink-0 border-b border-slate-800 bg-slate-950/20 px-4 md:pl-6">
         <div
           onMouseEnter={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();
@@ -287,7 +289,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
       </div>
 
       {/* Tabs (Horizontal Navigation - 6 tabs) */}
-      <div className="flex border-b border-slate-800 bg-slate-950/40 p-2 shrink-0 text-xs gap-2 pl-6 overflow-x-auto">
+      <div className="flex border-b border-slate-800 bg-slate-950/40 p-2 shrink-0 text-xs gap-2 px-4 md:pl-6 overflow-x-auto">
         {[
           { id: 'logs', label: 'Engine Execution Logs', icon: Terminal },
           { id: 'prompt', label: 'Raw Prompt Template', icon: Code },
@@ -316,7 +318,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto p-5 text-left font-mono text-xs pl-6 bg-slate-950/20">
+      <div className="flex-1 overflow-y-auto p-5 text-left font-mono text-xs px-4 md:pl-6 bg-slate-950/20">
         {activeTab === 'logs' && (
           <div className="space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-850 h-full overflow-y-auto shadow-inner">
             {logs.length === 0 ? (

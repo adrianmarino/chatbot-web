@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter, Sliders, Database, Users, Info, BookOpen, ExternalLink, FolderGit, Wind, Save, Download, Upload } from 'lucide-react';
+import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter, Sliders, Database, Users, Info, BookOpen, ExternalLink, FolderGit, Wind, Save, Download, Upload, ChevronDown, ChevronRight } from 'lucide-react';
 import type { UserProfile } from '../services/api';
 import { API_HOST } from '../services/api';
 
@@ -355,7 +355,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
     localStorage.setItem('chatbot_show_settings', String(showSettings));
   }, [showSettings]);
   
+
   const isWarmStart = ratingsCount >= 20;
+
+  const [isRagExpanded, setIsRagExpanded] = useState(!isWarmStart);
+  const [isCfExpanded, setIsCfExpanded] = useState(isWarmStart);
+
+  useEffect(() => {
+    setIsRagExpanded(!isWarmStart);
+    setIsCfExpanded(isWarmStart);
+  }, [isWarmStart]);
+
 
   const getAirflowUrl = () => {
     try {
@@ -834,21 +844,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             {/* RAG Settings */}
             <div className="space-y-3 pt-3 border-t border-slate-850">
-              <div className="flex items-center justify-between border-b border-slate-800/40 pb-1">
+              <button onClick={() => setIsRagExpanded(!isRagExpanded)} className="w-full flex items-center justify-between border-b border-slate-800/40 pb-2 hover:bg-slate-800/30 transition-colors rounded-sm px-1 -mx-1">
                 <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider flex items-center space-x-1">
                   <Database className="w-3.5 h-3.5 text-indigo-400" />
                   <span>RAG Pipeline (Cold-Start)</span>
                 </span>
-                <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md border ${
-                  !isWarmStart 
-                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
-                    : 'bg-slate-950 border-slate-855 text-slate-500'
-                }`}>
-                  {!isWarmStart ? '🟢 Active' : '⚪ Inactive'}
-                </span>
-              </div>
+                <div className="flex items-center space-x-2">
+                  <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md border ${!isWarmStart ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-slate-950 border-slate-855 text-slate-500'}`}>
+                    {!isWarmStart ? '🟢 Active' : '⚪ Inactive'}
+                  </span>
+                  {isRagExpanded ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+                </div>
+              </button>
 
-              <div className={isWarmStart ? 'opacity-40 select-none' : ''}>
+              {isRagExpanded && (
+              <div className={`${isWarmStart ? 'opacity-40 select-none' : ''} animate-in slide-in-from-top-2`}>
                 <div className="space-y-3">
                   <div className="space-y-1">
                     <div className="flex justify-between items-center text-xs">
@@ -974,24 +984,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 </div>
               </div>
+              )}
             </div>
 
             {/* Collaborative Filtering Settings */}
             <div className="space-y-3 pt-3 border-t border-slate-850">
-              <div className="flex items-center justify-between border-b border-slate-800/40 pb-1">
+              <button onClick={() => setIsCfExpanded(!isCfExpanded)} className="w-full flex items-center justify-between border-b border-slate-800/40 pb-2 hover:bg-slate-800/30 transition-colors rounded-sm px-1 -mx-1">
                 <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider flex items-center space-x-1">
                   <Users className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Collaborative Filtering (Warm)</span>
                 </span>
-                <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md border ${
-                  isWarmStart 
-                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 animate-pulse' 
-                    : 'bg-slate-950 border-slate-855 text-slate-500'
-                }`}>
-                  {isWarmStart ? '🟢 Active' : '🔒 Locked'}
-                </span>
-              </div>
+                <div className="flex items-center space-x-2">
+                  <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md border ${isWarmStart ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 animate-pulse' : 'bg-slate-950 border-slate-855 text-slate-500'}`}>
+                    {isWarmStart ? '🟢 Active' : '🔒 Locked'}
+                  </span>
+                  {isCfExpanded ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+                </div>
+              </button>
 
+              {isCfExpanded && (
+              <div className="animate-in slide-in-from-top-2 mt-2">
               {!isWarmStart ? (
                 /* Beautiful gamified locks banner for Cold-Start */
                 <div className="bg-amber-500/5 border border-amber-500/15 rounded-2xl p-3.5 text-[10.5px] text-amber-400/90 font-medium leading-relaxed font-sans select-none animate-in fade-in duration-300">
@@ -1316,6 +1328,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 </div>
               </div>
+              </div>
+              )}
             </div>
           </div>
         )}

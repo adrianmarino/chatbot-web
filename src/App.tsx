@@ -227,6 +227,17 @@ function App() {
     }
   };
 
+  const handleClearRatings = async () => {
+    if (!activeProfile) return;
+    try {
+      await api.deleteUserInteractions(activeProfile.email);
+      setRatedMovies({});
+    } catch (err) {
+      console.error('Error clearing ratings:', err);
+      alert('Failed to clear ratings.');
+    }
+  };
+
   const handleSendMessage = async (text: string) => {
     if (!activeProfile || isLoading) return;
 
@@ -443,6 +454,7 @@ function App() {
               messages={messages}
               onSendMessage={handleSendMessage}
               onClearHistory={handleClearHistory}
+              onClearRatings={handleClearRatings}
               isLoading={isLoading}
               activeProfileName={activeProfile?.name}
               activeProfileEmail={activeProfile?.email}

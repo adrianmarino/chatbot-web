@@ -181,6 +181,10 @@ export const api = {
     return res.data;
   },
 
+  deleteUserInteractions: async (userId: string): Promise<void> => {
+    await client.delete(`/interactions/users/${encodeURIComponent(userId)}`);
+  },
+
   getSeenMovies: async (email: string): Promise<any[]> => {
     const res = await client.get<any[]>('/items', {
       params: { email, seen: true, limit: 100 },

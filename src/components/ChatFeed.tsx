@@ -21,6 +21,7 @@ interface ChatFeedProps {
   messages: ChatMessage[];
   onSendMessage: (text: string) => void;
   onClearHistory: () => void;
+  onClearRatings: () => void;
   isLoading: boolean;
   activeProfileName: string | undefined;
   activeProfileEmail: string | undefined;
@@ -164,6 +165,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
   messages,
   onSendMessage,
   onClearHistory,
+  onClearRatings,
   isLoading,
   activeProfileName,
   activeProfileEmail,
@@ -494,6 +496,31 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>Reset History</span>
+            </button>
+          )}
+
+          {Object.keys(ratedMovies).length > 0 && activeTab === 'ratings' && (
+            <button
+              onClick={() => {
+                if (confirm('Are you sure you want to delete ALL your movie ratings? This will reset your profile start-type to Cold-Start.')) {
+                  onClearRatings();
+                }
+              }}
+              onMouseEnter={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setHoverHelp({
+                  title: 'Reset Ratings / Borrar Calificaciones',
+                  explanation: 'Elimina permanentemente todas tus calificaciones de películas de MongoDB. Esto restablecerá tu perfil a Cold-Start (< 20 calificaciones), desactivando las recomendaciones colaborativas neurales hasta que vuelvas a calificar películas.',
+                  lower: 'Se mantienen tus calificaciones actuales.',
+                  higher: 'Borrado absoluto; tu perfil vuelve a cero calificaciones, libre de historiales de votación.',
+                  rect,
+                });
+              }}
+              onMouseLeave={() => setHoverHelp(null)}
+              className="flex items-center space-x-1.5 text-xs text-slate-400 hover:text-rose-400 bg-slate-950/40 hover:bg-slate-800/40 border border-slate-800 px-3 py-1.5 rounded-xl transition cursor-pointer"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Reset Ratings</span>
             </button>
           )}
         </div>

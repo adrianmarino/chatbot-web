@@ -24,6 +24,8 @@ export interface SavedSettingsProfile {
   cfRandomSelectionItemsByUser: number;
   cfMaxItemsByUser: number;
   cfRankCriterion: string;
+  cfNeighborhoodExpansionRatio: number;
+  cfMaxExpansionAttempts: number;
 }
 
 interface SidebarProps {
@@ -75,6 +77,10 @@ interface SidebarProps {
   onSetCfMaxItemsByUser: (val: number) => void;
   cfRankCriterion: string;
   onSetCfRankCriterion: (val: string) => void;
+  cfNeighborhoodExpansionRatio: number;
+  onSetCfNeighborhoodExpansionRatio: (val: number) => void;
+  cfMaxExpansionAttempts: number;
+  onSetCfMaxExpansionAttempts: (val: number) => void;
   ragMinRating: number;
   onSetRagMinRating: (val: number) => void;
 
@@ -139,6 +145,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSetCfMaxItemsByUser,
   cfRankCriterion,
   onSetCfRankCriterion,
+  cfNeighborhoodExpansionRatio,
+  onSetCfNeighborhoodExpansionRatio,
+  cfMaxExpansionAttempts,
+  onSetCfMaxExpansionAttempts,
   ragMinRating,
   onSetRagMinRating,
 
@@ -244,6 +254,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       cfRandomSelectionItemsByUser,
       cfMaxItemsByUser,
       cfRankCriterion,
+      cfNeighborhoodExpansionRatio,
+      cfMaxExpansionAttempts,
     };
     
     if (isUpdate) {
@@ -278,6 +290,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     if (preset.cfRandomSelectionItemsByUser !== undefined) onSetCfRandomSelectionItemsByUser(preset.cfRandomSelectionItemsByUser);
     if (preset.cfMaxItemsByUser !== undefined) onSetCfMaxItemsByUser(preset.cfMaxItemsByUser);
     if (preset.cfRankCriterion !== undefined) onSetCfRankCriterion(preset.cfRankCriterion);
+    if (preset.cfNeighborhoodExpansionRatio !== undefined) onSetCfNeighborhoodExpansionRatio(preset.cfNeighborhoodExpansionRatio);
+    if (preset.cfMaxExpansionAttempts !== undefined) onSetCfMaxExpansionAttempts(preset.cfMaxExpansionAttempts);
   };
 
   const handleLoadPreset = (index: number) => {
@@ -1247,6 +1261,58 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <option value="user_item_sim">User Item Sim</option>
                       <option value="pred_user_rating">Predicted User Rating</option>
                     </select>
+                  </div>
+
+                  {/* CF Expansion Ratio */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">
+                        Expansion Ratio
+                        {renderInfoTrigger(
+                          'Neighborhood Expansion Ratio',
+                          'Ratio multiplicador para expandir el vecindario (k_sim_users y max_items) si no se encuentran suficientes candidatos no vistos.',
+                          'Búsqueda estricta, no se amplía si se agotan.',
+                          'Multiplica agresivamente la red de vecinos si faltan candidatos.'
+                        )}
+                      </span>
+                      <span className="text-emerald-400 font-bold">{cfNeighborhoodExpansionRatio.toFixed(1)}x</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1.0"
+                      max="3.0"
+                      step="0.1"
+                      disabled={!isWarmStart}
+                      value={cfNeighborhoodExpansionRatio}
+                      onChange={(e) => onSetCfNeighborhoodExpansionRatio(Number(e.target.value))}
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
+
+                  {/* CF Max Expansion Attempts */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">
+                        Max Expansion Attempts
+                        {renderInfoTrigger(
+                          'Max Expansion Attempts',
+                          'Número máximo de iteraciones permitidas para el bucle de expansión de candidatos.',
+                          'Desactiva el bucle de expansión de búsqueda.',
+                          'Permite hasta 5 ciclos completos de expansión multiplicativa.'
+                        )}
+                      </span>
+                      <span className="text-emerald-400 font-bold">{cfMaxExpansionAttempts}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="5"
+                      step="1"
+                      disabled={!isWarmStart}
+                      value={cfMaxExpansionAttempts}
+                      onChange={(e) => onSetCfMaxExpansionAttempts(Number(e.target.value))}
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
                   </div>
                 </div>
               </div>

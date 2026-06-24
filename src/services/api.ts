@@ -56,6 +56,8 @@ export interface RecommendationSettings {
     min_rating_by_user?: number;
     not_seen?: boolean;
     rank_criterion?: string;
+    neighborhood_expansion_ratio?: number;
+    max_expansion_attempts?: number;
   };
 }
 

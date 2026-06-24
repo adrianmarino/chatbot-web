@@ -37,6 +37,8 @@ function App() {
   const [cfRandomSelectionItemsByUser, setCfRandomSelectionItemsByUser] = useState(1.0);
   const [cfMaxItemsByUser, setCfMaxItemsByUser] = useState(30);
   const [cfRankCriterion, setCfRankCriterion] = useState('user_sim_weighted_pred_rating_score');
+  const [cfNeighborhoodExpansionRatio, setCfNeighborhoodExpansionRatio] = useState(1.5);
+  const [cfMaxExpansionAttempts, setCfMaxExpansionAttempts] = useState(3);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -260,6 +262,8 @@ function App() {
             random_selection_items_by_user: cfRandomSelectionItemsByUser,
             max_items_by_user: cfMaxItemsByUser,
             rank_criterion: cfRankCriterion,
+            neighborhood_expansion_ratio: cfNeighborhoodExpansionRatio,
+            max_expansion_attempts: cfMaxExpansionAttempts,
           },
         },
       };
@@ -410,6 +414,10 @@ function App() {
           onSetCfMaxItemsByUser={setCfMaxItemsByUser}
           cfRankCriterion={cfRankCriterion}
           onSetCfRankCriterion={setCfRankCriterion}
+          cfNeighborhoodExpansionRatio={cfNeighborhoodExpansionRatio}
+          onSetCfNeighborhoodExpansionRatio={setCfNeighborhoodExpansionRatio}
+          cfMaxExpansionAttempts={cfMaxExpansionAttempts}
+          onSetCfMaxExpansionAttempts={setCfMaxExpansionAttempts}
           ragMinRating={ragMinRating}
           onSetRagMinRating={setRagMinRating}
 

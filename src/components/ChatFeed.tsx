@@ -551,7 +551,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     Try asking one of these:
                   </p>
-                  <div className="grid grid-cols-2 gap-3 max-w-xl mx-auto">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto">
                     {SUGGESTED_PROMPTS.map((prompt) => (
                       <button
                         key={prompt}
@@ -567,7 +567,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
               </div>
             ) : (
               /* Active Chat Thread */
-              <div className="max-w-3xl mx-auto space-y-6 text-left">
+              <div className="max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-7xl mx-auto space-y-6 text-left">
                 {messages.map((msg) => {
                   const isUser = msg.sender === 'user';
                   const hasRecs = msg.recommendations && msg.recommendations.length > 0;
@@ -719,7 +719,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
 
           {/* Input Form Footer */}
           <div className="p-6 bg-slate-900/30 border-t border-slate-800/80 backdrop-blur-md z-10 shrink-0">
-            <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex items-center space-x-3">
+            <form onSubmit={handleSubmit} className="max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-7xl mx-auto flex items-center space-x-3">
               <div className="relative flex-1">
                 <input
                   type="text"

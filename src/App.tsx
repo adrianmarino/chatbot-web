@@ -48,7 +48,7 @@ function App() {
   const [isDevPanelOpen, setIsDevPanelOpen] = useState(() => {
     return localStorage.getItem('chatbot_dev_panel_open') !== 'false';
   });
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Left sidebar collapsible state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768); // Left sidebar collapsible state
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null); // Active audited message ID
   const [activeCurl, setActiveCurl] = useState<string>(''); // Active audited CURL command
   const [activeRawResponse, setActiveRawResponse] = useState<any>(null); // Active raw API response
@@ -387,61 +387,69 @@ function App() {
   }
 
   return (
-    <div className="h-screen w-screen flex bg-slate-950 text-slate-100 font-sans overflow-hidden">
+    <div className="h-[100dvh] w-screen flex bg-slate-950 text-slate-100 font-sans overflow-hidden">
       {/* 1. Collapsible Sidebar Panel */}
-      {isSidebarOpen && (
-        <Sidebar
-          profiles={profiles}
-          activeProfile={activeProfile}
-          onSelectProfile={handleSelectProfile}
-          onCreateProfile={handleCreateProfile}
-          onDeleteProfile={handleDeleteProfile}
-          models={models}
-          selectedModel={selectedModel}
-          onSelectModel={setSelectedModel}
-          includeMetadata={includeMetadata}
-          onToggleMetadata={setIncludeMetadata}
-          excludeSeen={excludeSeen}
-          onToggleExcludeSeen={setExcludeSeen}
-          
-          retry={retry}
-          onSetRetry={setRetry}
-          ragCandidates={ragCandidates}
-          onSetRagCandidates={setRagCandidates}
-          ragLlmResponse={ragLlmResponse}
-          onSetRagLlmResponse={setRagLlmResponse}
-          ragRecommendations={ragRecommendations}
-          onSetRagRecommendations={setRagRecommendations}
-          ragAugmentation={ragAugmentation}
-          onSetRagAugmentation={setRagAugmentation}
-          cfCandidates={cfCandidates}
-          onSetCfCandidates={setCfCandidates}
-          cfLlmResponse={cfLlmResponse}
-          onSetCfLlmResponse={setCfLlmResponse}
-          cfRecommendations={cfRecommendations}
-          onSetCfRecommendations={setCfRecommendations}
-          cfAugmentation={cfAugmentation}
-          onSetCfAugmentation={setCfAugmentation}
-          cfKUsers={cfKUsers}
-          onSetCfKUsers={setCfKUsers}
-          cfMinRating={cfMinRating}
-          onSetCfMinRating={setCfMinRating}
-          cfTextQueryLimit={cfTextQueryLimit}
-          onSetCfTextQueryLimit={setCfTextQueryLimit}
-          cfRandomSelectionItemsByUser={cfRandomSelectionItemsByUser}
-          onSetCfRandomSelectionItemsByUser={setCfRandomSelectionItemsByUser}
-          cfMaxItemsByUser={cfMaxItemsByUser}
-          onSetCfMaxItemsByUser={setCfMaxItemsByUser}
-          cfRankCriterion={cfRankCriterion}
-          onSetCfRankCriterion={setCfRankCriterion}
-          cfNeighborhoodExpansionRatio={cfNeighborhoodExpansionRatio}
-          onSetCfNeighborhoodExpansionRatio={setCfNeighborhoodExpansionRatio}
-          cfMaxExpansionAttempts={cfMaxExpansionAttempts}
-          onSetCfMaxExpansionAttempts={setCfMaxExpansionAttempts}
-          ragMinRating={ragMinRating}
-          onSetRagMinRating={setRagMinRating}
+      <Sidebar
+        profiles={profiles}
+        activeProfile={activeProfile}
+        onSelectProfile={handleSelectProfile}
+        onCreateProfile={handleCreateProfile}
+        onDeleteProfile={handleDeleteProfile}
+        models={models}
+        selectedModel={selectedModel}
+        onSelectModel={setSelectedModel}
+        includeMetadata={includeMetadata}
+        onToggleMetadata={setIncludeMetadata}
+        excludeSeen={excludeSeen}
+        onToggleExcludeSeen={setExcludeSeen}
+        
+        retry={retry}
+        onSetRetry={setRetry}
+        ragCandidates={ragCandidates}
+        onSetRagCandidates={setRagCandidates}
+        ragLlmResponse={ragLlmResponse}
+        onSetRagLlmResponse={setRagLlmResponse}
+        ragRecommendations={ragRecommendations}
+        onSetRagRecommendations={setRagRecommendations}
+        ragAugmentation={ragAugmentation}
+        onSetRagAugmentation={setRagAugmentation}
+        cfCandidates={cfCandidates}
+        onSetCfCandidates={setCfCandidates}
+        cfLlmResponse={cfLlmResponse}
+        onSetCfLlmResponse={setCfLlmResponse}
+        cfRecommendations={cfRecommendations}
+        onSetCfRecommendations={setCfRecommendations}
+        cfAugmentation={cfAugmentation}
+        onSetCfAugmentation={setCfAugmentation}
+        cfKUsers={cfKUsers}
+        onSetCfKUsers={setCfKUsers}
+        cfMinRating={cfMinRating}
+        onSetCfMinRating={setCfMinRating}
+        cfTextQueryLimit={cfTextQueryLimit}
+        onSetCfTextQueryLimit={setCfTextQueryLimit}
+        cfRandomSelectionItemsByUser={cfRandomSelectionItemsByUser}
+        onSetCfRandomSelectionItemsByUser={setCfRandomSelectionItemsByUser}
+        cfMaxItemsByUser={cfMaxItemsByUser}
+        onSetCfMaxItemsByUser={setCfMaxItemsByUser}
+        cfRankCriterion={cfRankCriterion}
+        onSetCfRankCriterion={setCfRankCriterion}
+        cfNeighborhoodExpansionRatio={cfNeighborhoodExpansionRatio}
+        onSetCfNeighborhoodExpansionRatio={setCfNeighborhoodExpansionRatio}
+        cfMaxExpansionAttempts={cfMaxExpansionAttempts}
+        onSetCfMaxExpansionAttempts={setCfMaxExpansionAttempts}
+        ragMinRating={ragMinRating}
+        onSetRagMinRating={setRagMinRating}
 
-          ratingsCount={Object.keys(ratedMovies).length} // Pass the ratings count to sidebar!
+        ratingsCount={Object.keys(ratedMovies).length} // Pass the ratings count to sidebar!
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
+
+      {/* Mobile Sidebar Backdrop Overlay */}
+      {isSidebarOpen && (
+        <div
+          onClick={() => setIsSidebarOpen(false)}
+          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 cursor-pointer"
         />
       )}
 

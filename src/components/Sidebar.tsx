@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter, Sliders, Database, Users, Info, BookOpen, ExternalLink, FolderGit, Wind, Save, Download, Upload, ChevronDown, ChevronRight } from 'lucide-react';
+import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter, Sliders, Database, Users, Info, BookOpen, ExternalLink, FolderGit, Wind, Save, Download, Upload, ChevronDown, ChevronRight, X } from 'lucide-react';
 import type { UserProfile } from '../services/api';
 import { API_HOST } from '../services/api';
 
@@ -85,6 +85,8 @@ interface SidebarProps {
   onSetRagMinRating: (val: number) => void;
 
   ratingsCount: number; // Current interaction count
+  isOpen: boolean;      // Responsive mobile drawer state
+  onClose: () => void;  // Responsive mobile drawer close handler
 }
 
 const AVAILABLE_GENRES = [
@@ -110,6 +112,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   models,
   selectedModel,
   onSelectModel,
+  isOpen,
+  onClose,
   includeMetadata,
   onToggleMetadata,
   excludeSeen,
@@ -492,20 +496,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <aside className="w-80 bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col h-screen overflow-hidden shrink-0">
+    <aside className={`
+      w-80 bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col h-screen overflow-hidden shrink-0 z-50
+      fixed md:relative inset-y-0 left-0 shadow-2xl md:shadow-none
+      transition-transform duration-300 ease-in-out md:translate-x-0
+      ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+    `}>
       {/* App Header */}
-      <div className="p-6 border-b border-slate-800 flex items-center space-x-3 bg-gradient-to-r from-violet-600/10 to-transparent shrink-0">
-        <div className="p-2 bg-gradient-to-tr from-violet-600 to-indigo-500 rounded-xl shadow-lg shadow-indigo-500/20">
-          <Bot className="w-6 h-6 text-white" />
+      <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-gradient-to-r from-violet-600/10 to-transparent shrink-0">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-gradient-to-tr from-violet-600 to-indigo-500 rounded-xl shadow-lg shadow-indigo-500/20">
+            <Bot className="w-6 h-6 text-white" />
+          </div>
+          <div className="text-left">
+            <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+              Chatbot Web
+            </h1>
+            <p className="text-xs text-slate-400 font-medium tracking-wide">
+              HYBRID REC-SYS CONSOLE
+            </p>
+          </div>
         </div>
-        <div className="text-left">
-          <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-            Chatbot Web
-          </h1>
-          <p className="text-xs text-slate-400 font-medium tracking-wide">
-            HYBRID REC-SYS CONSOLE
-          </p>
-        </div>
+
+        {/* Mobile Close Button */}
+        <button
+          onClick={onClose}
+          type="button"
+          className="md:hidden p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition cursor-pointer"
+          title="Close sidebar"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Main scrollable body */}

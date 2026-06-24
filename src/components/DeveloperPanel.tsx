@@ -210,14 +210,14 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
 
   return (
     <div
-      style={{ width: `${width}px` }}
-      className="bg-slate-900 border-l border-slate-800 text-slate-100 flex flex-col h-screen overflow-hidden shrink-0 z-30 shadow-2xl animate-in slide-in-from-right duration-200 relative"
+      style={window.innerWidth >= 768 ? { width: `${width}px` } : {}}
+      className="bg-slate-900 border-l border-slate-800 text-slate-100 flex flex-col h-[100dvh] md:h-screen overflow-hidden shrink-0 z-30 shadow-2xl animate-in slide-in-from-right duration-200 relative fixed md:relative inset-y-0 right-0 w-full md:w-auto"
     >
       {/* Draggable Resizer Handler */}
       <div
         ref={dragRef}
         onMouseDown={handleMouseDown}
-        className={`absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize z-50 transition-all ${
+        className={`absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize z-50 transition-all hidden md:block ${
           isDragging ? 'bg-violet-500 w-2' : 'bg-slate-800/80 hover:bg-violet-500/55 hover:w-2'
         }`}
         title="Drag to resize panel"

@@ -25,13 +25,18 @@ function App() {
   const [ragLlmResponse, setRagLlmResponse] = useState(20); // LLM Generation Limit state
   const [ragRecommendations, setRagRecommendations] = useState(5);
   const [ragAugmentation, setRagAugmentation] = useState(5);
+  const [ragMinRating, setRagMinRating] = useState(0.0);
   
   const [cfCandidates, setCfCandidates] = useState(20);
   const [cfLlmResponse, setCfLlmResponse] = useState(20); // CF LLM Generation Limit state
   const [cfRecommendations, setCfRecommendations] = useState(5);
   const [cfAugmentation, setCfAugmentation] = useState(5);
-  const [cfKUsers, setCfKUsers] = useState(5);
+  const [cfKUsers, setCfKUsers] = useState(20);
   const [cfMinRating, setCfMinRating] = useState(3.5);
+  const [cfTextQueryLimit, setCfTextQueryLimit] = useState(5000);
+  const [cfRandomSelectionItemsByUser, setCfRandomSelectionItemsByUser] = useState(1.0);
+  const [cfMaxItemsByUser, setCfMaxItemsByUser] = useState(30);
+  const [cfRankCriterion, setCfRankCriterion] = useState('user_sim_weighted_pred_rating_score');
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -241,6 +246,7 @@ function App() {
             recommendations_limit: ragRecommendations,    // Truncates response in factory
             similar_items_augmentation_limit: ragAugmentation,
             not_seen: excludeSeen,
+            min_rating_by_user: ragMinRating,
           },
           collaborative_filtering: {
             candidates_limit: cfCandidates,
@@ -250,6 +256,10 @@ function App() {
             not_seen: excludeSeen,
             k_sim_users: cfKUsers,
             min_rating_by_user: cfMinRating,
+            text_query_limit: cfTextQueryLimit,
+            random_selection_items_by_user: cfRandomSelectionItemsByUser,
+            max_items_by_user: cfMaxItemsByUser,
+            rank_criterion: cfRankCriterion,
           },
         },
       };
@@ -392,6 +402,16 @@ function App() {
           onSetCfKUsers={setCfKUsers}
           cfMinRating={cfMinRating}
           onSetCfMinRating={setCfMinRating}
+          cfTextQueryLimit={cfTextQueryLimit}
+          onSetCfTextQueryLimit={setCfTextQueryLimit}
+          cfRandomSelectionItemsByUser={cfRandomSelectionItemsByUser}
+          onSetCfRandomSelectionItemsByUser={setCfRandomSelectionItemsByUser}
+          cfMaxItemsByUser={cfMaxItemsByUser}
+          onSetCfMaxItemsByUser={setCfMaxItemsByUser}
+          cfRankCriterion={cfRankCriterion}
+          onSetCfRankCriterion={setCfRankCriterion}
+          ragMinRating={ragMinRating}
+          onSetRagMinRating={setRagMinRating}
 
           ratingsCount={Object.keys(ratedMovies).length} // Pass the ratings count to sidebar!
         />

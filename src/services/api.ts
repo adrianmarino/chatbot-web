@@ -35,20 +35,27 @@ export interface RecommendationSettings {
   plain?: boolean;
   include_metadata?: boolean;
   rag?: {
+    shuffle?: boolean;
     candidates_limit?: number;
     llm_response_limit?: number;
     recommendations_limit?: number;
     similar_items_augmentation_limit?: number;
     not_seen?: boolean;
+    min_rating_by_user?: number;
   };
   collaborative_filtering?: {
+    shuffle?: boolean;
     candidates_limit?: number;
     llm_response_limit?: number;
     recommendations_limit?: number;
     similar_items_augmentation_limit?: number;
-    not_seen?: boolean;
+    text_query_limit?: number;
     k_sim_users?: number;
+    random_selection_items_by_user?: number;
+    max_items_by_user?: number;
     min_rating_by_user?: number;
+    not_seen?: boolean;
+    rank_criterion?: string;
   };
 }
 

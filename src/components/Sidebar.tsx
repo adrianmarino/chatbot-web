@@ -13,12 +13,17 @@ export interface SavedSettingsProfile {
   ragLlmResponse: number;
   ragRecommendations: number;
   ragAugmentation: number;
+  ragMinRating: number;
   cfCandidates: number;
   cfLlmResponse: number;
   cfRecommendations: number;
   cfAugmentation: number;
   cfKUsers: number;
   cfMinRating: number;
+  cfTextQueryLimit: number;
+  cfRandomSelectionItemsByUser: number;
+  cfMaxItemsByUser: number;
+  cfRankCriterion: string;
 }
 
 interface SidebarProps {
@@ -62,6 +67,16 @@ interface SidebarProps {
   onSetCfKUsers: (val: number) => void;
   cfMinRating: number;
   onSetCfMinRating: (val: number) => void;
+  cfTextQueryLimit: number;
+  onSetCfTextQueryLimit: (val: number) => void;
+  cfRandomSelectionItemsByUser: number;
+  onSetCfRandomSelectionItemsByUser: (val: number) => void;
+  cfMaxItemsByUser: number;
+  onSetCfMaxItemsByUser: (val: number) => void;
+  cfRankCriterion: string;
+  onSetCfRankCriterion: (val: string) => void;
+  ragMinRating: number;
+  onSetRagMinRating: (val: number) => void;
 
   ratingsCount: number; // Current interaction count
 }
@@ -116,6 +131,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSetCfKUsers,
   cfMinRating,
   onSetCfMinRating,
+  cfTextQueryLimit,
+  onSetCfTextQueryLimit,
+  cfRandomSelectionItemsByUser,
+  onSetCfRandomSelectionItemsByUser,
+  cfMaxItemsByUser,
+  onSetCfMaxItemsByUser,
+  cfRankCriterion,
+  onSetCfRankCriterion,
+  ragMinRating,
+  onSetRagMinRating,
 
   ratingsCount,
 }) => {
@@ -208,12 +233,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ragLlmResponse,
       ragRecommendations,
       ragAugmentation,
+      ragMinRating,
       cfCandidates,
       cfLlmResponse,
       cfRecommendations,
       cfAugmentation,
       cfKUsers,
       cfMinRating,
+      cfTextQueryLimit,
+      cfRandomSelectionItemsByUser,
+      cfMaxItemsByUser,
+      cfRankCriterion,
     };
     
     if (isUpdate) {
@@ -230,19 +260,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const handleLoadPresetDirect = (preset: SavedSettingsProfile) => {
     onSelectModel(preset.selectedModel);
-    onToggleMetadata(preset.includeMetadata);
-    onToggleExcludeSeen(preset.excludeSeen);
-    onSetRetry(preset.retry);
-    onSetRagCandidates(preset.ragCandidates);
-    onSetRagLlmResponse(preset.ragLlmResponse);
-    onSetRagRecommendations(preset.ragRecommendations);
-    onSetRagAugmentation(preset.ragAugmentation);
-    onSetCfCandidates(preset.cfCandidates);
-    onSetCfLlmResponse(preset.cfLlmResponse);
-    onSetCfRecommendations(preset.cfRecommendations);
-    onSetCfAugmentation(preset.cfAugmentation);
-    onSetCfKUsers(preset.cfKUsers);
-    onSetCfMinRating(preset.cfMinRating);
+    if (preset.includeMetadata !== undefined) onToggleMetadata(preset.includeMetadata);
+    if (preset.excludeSeen !== undefined) onToggleExcludeSeen(preset.excludeSeen);
+    if (preset.retry !== undefined) onSetRetry(preset.retry);
+    if (preset.ragCandidates !== undefined) onSetRagCandidates(preset.ragCandidates);
+    if (preset.ragLlmResponse !== undefined) onSetRagLlmResponse(preset.ragLlmResponse);
+    if (preset.ragRecommendations !== undefined) onSetRagRecommendations(preset.ragRecommendations);
+    if (preset.ragAugmentation !== undefined) onSetRagAugmentation(preset.ragAugmentation);
+    if (preset.ragMinRating !== undefined) onSetRagMinRating(preset.ragMinRating);
+    if (preset.cfCandidates !== undefined) onSetCfCandidates(preset.cfCandidates);
+    if (preset.cfLlmResponse !== undefined) onSetCfLlmResponse(preset.cfLlmResponse);
+    if (preset.cfRecommendations !== undefined) onSetCfRecommendations(preset.cfRecommendations);
+    if (preset.cfAugmentation !== undefined) onSetCfAugmentation(preset.cfAugmentation);
+    if (preset.cfKUsers !== undefined) onSetCfKUsers(preset.cfKUsers);
+    if (preset.cfMinRating !== undefined) onSetCfMinRating(preset.cfMinRating);
+    if (preset.cfTextQueryLimit !== undefined) onSetCfTextQueryLimit(preset.cfTextQueryLimit);
+    if (preset.cfRandomSelectionItemsByUser !== undefined) onSetCfRandomSelectionItemsByUser(preset.cfRandomSelectionItemsByUser);
+    if (preset.cfMaxItemsByUser !== undefined) onSetCfMaxItemsByUser(preset.cfMaxItemsByUser);
+    if (preset.cfRankCriterion !== undefined) onSetCfRankCriterion(preset.cfRankCriterion);
   };
 
   const handleLoadPreset = (index: number) => {
@@ -899,6 +934,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     />
                   </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">
+                        Min Rating (min_rating_by_user)
+                        {renderInfoTrigger(
+                          'Min Rating (RAG)',
+                          'Minimum rating required for a candidate movie to be retrieved from ChromaDB.',
+                          'Lower quality movies can be retrieved.',
+                          'Strictly fetches high-quality rated movies.'
+                        )}
+                      </span>
+                      <span className="text-indigo-400 font-bold">{ragMinRating.toFixed(1)} ★</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="5.0"
+                      step="0.5"
+                      disabled={isWarmStart}
+                      value={ragMinRating}
+                      onChange={(e) => onSetRagMinRating(Number(e.target.value))}
+                      className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1052,7 +1111,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <input
                       type="range"
                       min="1"
-                      max="20"
+                      max="100"
                       disabled={!isWarmStart}
                       value={cfKUsers}
                       onChange={(e) => onSetCfKUsers(Number(e.target.value))}
@@ -1060,15 +1119,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     />
                   </div>
 
+                  {/* CF Min Rating */}
                   <div className="space-y-1">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-emerald-400">
-                        Min Rating Threshold
+                      <span className="text-slate-400">
+                        Min Rating (min_rating_by_user)
                         {renderInfoTrigger(
-                          'Min Rating Threshold',
-                          'Filtra previamente cualquier película candidata cuya calificación promedio dentro de tu grupo de usuarios afines no alcance este valor mínimo de estrellas.',
-                          'Mayor tolerancia; permite que entren al LLM candidatos controversiales o de nicho.',
-                          'Filtro de calidad muy exigente; solo ingresan películas con valoraciones excelentes entre tus vecinos afines.'
+                          'Min Rating',
+                          'Calificación mínima que debe tener una película en el historial de un usuario similar para ser considerada como candidata.',
+                          'Acepta películas con malas calificaciones en el historial de los vecinos.',
+                          'Filtra solo las mejores calificaciones de los vecinos.'
                         )}
                       </span>
                       <span className="text-emerald-400 font-bold">{cfMinRating.toFixed(1)} ★</span>
@@ -1083,6 +1143,110 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       onChange={(e) => onSetCfMinRating(Number(e.target.value))}
                       className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     />
+                  </div>
+
+                  {/* CF Max Items By User */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">
+                        Max Items By User (max_items_by_user)
+                        {renderInfoTrigger(
+                          'Max Items By User',
+                          'Límite de películas a extraer del historial de cada usuario similar.',
+                          'Extrae pocas películas, perdiendo historia valiosa.',
+                          'Extrae hasta 100 películas por usuario, aumentando los candidatos.'
+                        )}
+                      </span>
+                      <span className="text-emerald-400 font-bold">{cfMaxItemsByUser}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="100"
+                      step="1"
+                      disabled={!isWarmStart}
+                      value={cfMaxItemsByUser}
+                      onChange={(e) => onSetCfMaxItemsByUser(Number(e.target.value))}
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
+
+                  {/* CF Random Selection */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">
+                        Retention Rate (random_selection_items_by_user)
+                        {renderInfoTrigger(
+                          'Retention Rate',
+                          'Porcentaje de películas seleccionadas aleatoriamente del historial de los usuarios similares (1.0 = retiene el 100%).',
+                          'Descarta muchas películas, aumenta diversidad pero reduce pool.',
+                          'Conserva el 100% de las películas extraídas.'
+                        )}
+                      </span>
+                      <span className="text-emerald-400 font-bold">{(cfRandomSelectionItemsByUser * 100).toFixed(0)}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="1.0"
+                      step="0.1"
+                      disabled={!isWarmStart}
+                      value={cfRandomSelectionItemsByUser}
+                      onChange={(e) => onSetCfRandomSelectionItemsByUser(Number(e.target.value))}
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
+
+                  {/* CF Text Query Limit */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">
+                        Text Query Limit (text_query_limit)
+                        {renderInfoTrigger(
+                          'Text Query Limit',
+                          'Límite de películas a recuperar de ChromaDB para cruzar con las extraídas por los usuarios similares.',
+                          'Bajo cruce, pocos resultados finales.',
+                          'Gran volumen de recuperación en ChromaDB para el cruce.'
+                        )}
+                      </span>
+                      <span className="text-emerald-400 font-bold">{cfTextQueryLimit}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1000"
+                      max="12000"
+                      step="1000"
+                      disabled={!isWarmStart}
+                      value={cfTextQueryLimit}
+                      onChange={(e) => onSetCfTextQueryLimit(Number(e.target.value))}
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
+
+                  {/* CF Rank Criterion */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">
+                        Rank Criterion
+                        {renderInfoTrigger(
+                          'Rank Criterion',
+                          'Criterio de ordenamiento para rankear los candidatos de CF antes del recorte final.',
+                          '-',
+                          '-'
+                        )}
+                      </span>
+                    </div>
+                    <select
+                      value={cfRankCriterion}
+                      onChange={(e) => onSetCfRankCriterion(e.target.value)}
+                      disabled={!isWarmStart}
+                      className="w-full mt-1 bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-40 text-slate-200"
+                    >
+                      <option value="user_sim_weighted_pred_rating_score">User Sim Weighted Pred Rating</option>
+                      <option value="user_sim_weighted_rating_score">User Sim Weighted Rating</option>
+                      <option value="user_item_sim">User Item Sim</option>
+                      <option value="pred_user_rating">Predicted User Rating</option>
+                    </select>
                   </div>
                 </div>
               </div>

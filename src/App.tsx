@@ -138,25 +138,34 @@ function App() {
       // 2. Fetch history
       try {
         const chatHist = await api.getHistory(email);
-        if (chatHist && Array.isArray(chatHist.history)) {
+        if (chatHist && Array.isArray(chatHist.dialogue)) {
           const formatted: ChatMessage[] = [];
-          chatHist.history.forEach((h: any, i: number) => {
-            if (h.user) {
-              formatted.push({
-                id: `hist-user-${i}`,
-                sender: 'user',
-                text: h.user,
-                timestamp: new Date(),
-              });
-            }
-            if (h.bot) {
-              formatted.push({
-                id: `hist-bot-${i}`,
-                sender: 'bot',
-                text: h.bot,
-                timestamp: new Date(),
-              });
-            }
+          chatHist.dialogue.forEach((msg: any, i: number) => {
+            const isUser = msg.author !== 'AI';
+            
+            // Map past recommendations safely to ensure properties like genres and votes are always arrays
+            const safeRecs = msg.metadata?.recommendations ? msg.metadata.recommendations.map((r: any) => ({
+              title: r.title,
+              description: r.description || '',
+              release: r.release || '',
+              genres: r.genres || [],
+              votes: r.votes || [],
+              poster: r.poster || null,
+              metadata: r.metadata || null,
+            })) : undefined;
+
+            formatted.push({
+              id: `hist-${isUser ? 'user' : 'bot'}-${i}`,
+              sender: isUser ? 'user' : 'bot',
+              text: msg.content,
+              timestamp: new Date(),
+              recommendations: safeRecs,
+              metadata: msg.metadata || null,
+              rawApiResponse: msg.metadata ? { 
+                items: safeRecs || [], 
+                metadata: msg.metadata 
+              } : undefined,
+            });
           });
           setMessages(formatted);
         } else {

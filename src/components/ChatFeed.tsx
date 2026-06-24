@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Send, Sparkles, Trash2, ArrowRight, Loader2, Bot, User, Menu, RotateCw, CheckCircle2, MessageSquare, Film, Lock, Unlock, Award } from 'lucide-react';
+import { Send, Sparkles, Trash2, ArrowRight, Loader2, Bot, User, Menu, RotateCw, CheckCircle2, MessageSquare, Film, Lock, Unlock, Award, Clock } from 'lucide-react';
 import { api } from '../services/api';
 import type { Recommendation, RecommendationsMetadata } from '../services/api';
 import { MovieGrid } from './MovieGrid';
@@ -47,6 +47,119 @@ interface HoverHelp {
   rect: DOMRect;
 }
 
+interface QueryHistoryItemProps {
+  query: {
+    id: string;
+    queryText: string;
+    timestamp: Date;
+    modelName?: string;
+    recommendations?: Recommendation[];
+    metadata?: RecommendationsMetadata | null;
+    curlCommand?: string;
+    rawApiResponse?: any;
+  };
+  onRateMovie: (movie: Recommendation, rating: number) => Promise<void>;
+  ratedMovies: Record<string, number>;
+  onSendMessage: (text: string) => void;
+  onSelectMessage: (id: string, metadata: RecommendationsMetadata | null, curlCommand: string, rawApiResponse?: any) => void;
+  setActiveTab: (tab: 'chat' | 'ratings' | 'history') => void;
+}
+
+const QueryHistoryItem: React.FC<QueryHistoryItemProps> = ({
+  query,
+  onRateMovie,
+  ratedMovies,
+  onSendMessage,
+  onSelectMessage,
+  setActiveTab,
+}) => {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  const hasRecs = query.recommendations && query.recommendations.length > 0;
+  const formattedTime = new Date(query.timestamp).toLocaleString();
+
+  return (
+    <div 
+      className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-5 hover:border-violet-500/30 transition-all duration-200 shadow-md flex flex-col space-y-4 animate-in fade-in text-left"
+    >
+      {/* Top Row: Info & Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="space-y-1 flex-1">
+          {/* Query Text */}
+          <p className="text-sm font-bold text-slate-100 leading-snug">
+            "{query.queryText}"
+          </p>
+          {/* Timestamp and Metadata Badge */}
+          <div className="flex items-center flex-wrap gap-2 text-[10px] text-slate-500 font-semibold">
+            <span>{formattedTime}</span>
+            <span>•</span>
+            <span className="bg-slate-800/60 text-slate-400 px-2 py-0.5 rounded-md border border-slate-800">
+              {hasRecs ? `${query.recommendations?.length} recomendaciones` : 'Sin recomendaciones'}
+            </span>
+            {query.metadata?.elapsed_time && (
+              <>
+                <span>•</span>
+                <span className="text-violet-400">{query.metadata.elapsed_time}</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Interactive Buttons */}
+        <div className="flex items-center space-x-2 shrink-0 self-start sm:self-center">
+          {hasRecs && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="px-3 py-1.5 bg-slate-950/60 hover:bg-slate-800/40 border border-slate-800 text-xs font-semibold text-slate-300 rounded-xl flex items-center space-x-1.5 transition cursor-pointer"
+            >
+              <span>{isExpanded ? 'Ocultar' : 'Ver Películas'}</span>
+            </button>
+          )}
+          <button
+            onClick={() => {
+              setActiveTab('chat');
+              onSendMessage(query.queryText);
+            }}
+            className="px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-xs font-bold text-white rounded-xl flex items-center space-x-1.5 transition shadow-lg shadow-violet-600/10 cursor-pointer"
+            title="Volver a ejecutar esta consulta en el chat"
+          >
+            <RotateCw className="w-3 h-3" />
+            <span>Repetir</span>
+          </button>
+          
+          {hasRecs && (
+            <button
+              onClick={() => {
+                onSelectMessage(
+                  query.id.replace('query-hist-', ''),
+                  query.metadata || null,
+                  query.curlCommand || '',
+                  query.rawApiResponse
+                );
+              }}
+              className="p-1.5 bg-slate-950/60 hover:bg-slate-800/40 border border-slate-800 text-slate-400 hover:text-violet-400 rounded-xl transition cursor-pointer"
+              title="Auditar logs y prompt en el panel derecho"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Expanded Section: Movie Grid inline */}
+      {isExpanded && hasRecs && query.recommendations && (
+        <div className="pt-4 border-t border-slate-800/50 animate-in fade-in duration-200">
+          <MovieGrid
+            movies={query.recommendations}
+            onRateMovie={onRateMovie}
+            ratedMovies={ratedMovies}
+          />
+        </div>
+      )}
+
+    </div>
+  );
+};
+
 export const ChatFeed: React.FC<ChatFeedProps> = ({
   messages,
   onSendMessage,
@@ -62,11 +175,51 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
   onSelectMessage,
 }) => {
   const [inputText, setInputText] = React.useState('');
-  const [activeTab, setActiveTab] = React.useState<'chat' | 'ratings'>('chat');
+  const [activeTab, setActiveTab] = React.useState<'chat' | 'ratings' | 'history'>('chat');
   const [seenMovies, setSeenMovies] = React.useState<Recommendation[]>([]);
   const [isLoadingSeen, setIsLoadingSeen] = React.useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const [hoverHelp, setHoverHelp] = React.useState<HoverHelp | null>(null);
+
+  // Group messages into paired historical queries
+  const historicalQueries = React.useMemo(() => {
+    const queries: {
+      id: string;
+      queryText: string;
+      timestamp: Date;
+      modelName?: string;
+      recommendations?: Recommendation[];
+      metadata?: RecommendationsMetadata | null;
+      curlCommand?: string;
+      rawApiResponse?: any;
+    }[] = [];
+
+    for (let i = 0; i < messages.length; i++) {
+      const msg = messages[i];
+      if (msg.sender === 'user') {
+        let botMsg = null;
+        for (let j = i + 1; j < messages.length; j++) {
+          if (messages[j].sender === 'bot') {
+            botMsg = messages[j];
+            break;
+          }
+        }
+        
+        queries.push({
+          id: `query-hist-${msg.id}`,
+          queryText: msg.text,
+          timestamp: msg.timestamp,
+          modelName: botMsg?.metadata?.response?.metadata?.llm || undefined,
+          recommendations: botMsg?.recommendations,
+          metadata: botMsg?.metadata,
+          curlCommand: botMsg?.curlCommand,
+          rawApiResponse: botMsg?.rawApiResponse,
+        });
+      }
+    }
+
+    return queries.reverse();
+  }, [messages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -294,6 +447,18 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           </button>
           <button
             type="button"
+            onClick={() => setActiveTab('history')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition ${
+              activeTab === 'history'
+                ? 'bg-violet-600 text-white shadow-md shadow-violet-600/10'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            <span>Query History</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveTab('ratings')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition ${
               activeTab === 'ratings'
@@ -334,7 +499,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
         </div>
       </div>
 
-      {/* Conditionally Render Chat Feed or Ratings View */}
+      {/* Conditionally Render Chat Feed, History, or Ratings View */}
       {activeTab === 'chat' ? (
         <>
           {/* Messages Feed */}
@@ -551,6 +716,51 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
             </form>
           </div>
         </>
+      ) : activeTab === 'history' ? (
+        <div className="flex-1 overflow-y-auto bg-slate-950/20 pb-8 px-6 py-8">
+          <div className="max-w-4xl mx-auto space-y-6">
+            
+            {/* Header / Intro */}
+            <div className="text-left space-y-1">
+              <h3 className="text-lg font-bold text-slate-100 flex items-center space-x-2 animate-in fade-in">
+                <Clock className="w-5 h-5 text-violet-400" />
+                <span>Historial de Consultas de Usuario</span>
+              </h3>
+              <p className="text-xs text-slate-400">
+                Explore y audite todas sus interacciones y solicitudes de recomendación anteriores para este perfil.
+              </p>
+            </div>
+
+            {/* Empty State */}
+            {historicalQueries.length === 0 ? (
+              <div className="py-16 flex flex-col items-center justify-center p-8 text-center space-y-4 max-w-sm mx-auto">
+                <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl text-slate-500">
+                  <Clock className="w-8 h-8 text-slate-500 animate-pulse" />
+                </div>
+                <h4 className="text-sm font-bold text-slate-300">No hay consultas registradas</h4>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Realice preguntas al recomendador conversacional en la pestaña de chat para comenzar a registrar su historial.
+                </p>
+              </div>
+            ) : (
+              /* Timeline List */
+              <div className="space-y-4 text-left">
+                {historicalQueries.map((q) => (
+                  <QueryHistoryItem
+                    key={q.id}
+                    query={q}
+                    onRateMovie={onRateMovie}
+                    ratedMovies={ratedMovies}
+                    onSendMessage={onSendMessage}
+                    onSelectMessage={onSelectMessage}
+                    setActiveTab={setActiveTab}
+                  />
+                ))}
+              </div>
+            )}
+
+          </div>
+        </div>
       ) : (
         <div className="flex-1 overflow-y-auto bg-slate-950/20 pb-8 space-y-6">
           {/* Gamified progress banner */}

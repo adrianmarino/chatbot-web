@@ -398,11 +398,12 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
   return (
     <div className="flex-1 flex flex-col bg-slate-950 h-full relative overflow-hidden">
       {/* Feed Header */}
-      <div className="h-16 border-b border-slate-800/80 px-6 flex items-center justify-between bg-slate-900/40 backdrop-blur-md z-10 shrink-0">
-        <div className="flex items-center space-x-3 text-left">
+      <div className="h-16 border-b border-slate-800/80 px-4 md:px-6 flex items-center justify-between bg-slate-900/40 backdrop-blur-md z-10 shrink-0">
+        <div className="flex items-center space-x-2 md:space-x-3 text-left min-w-0">
           {/* Sidebar Toggle Button */}
           <button
             onClick={onToggleSidebar}
+            type="button"
             onMouseEnter={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               setHoverHelp({
@@ -414,27 +415,28 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
               });
             }}
             onMouseLeave={() => setHoverHelp(null)}
-            className="p-1.5 text-slate-400 hover:text-violet-400 hover:bg-slate-855 rounded-lg transition mr-1 animate-in"
+            className="p-1.5 text-slate-400 hover:text-violet-400 hover:bg-slate-855 rounded-lg transition mr-0.5 md:mr-1 animate-in cursor-pointer"
             title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
             <Menu className="w-5 h-5" />
           </button>
           
-          <div className="text-left">
+          <div className="text-left min-w-0">
             <h2 className="text-sm font-bold text-slate-100 flex items-center space-x-1.5">
-              <Sparkles className="w-4 h-4 text-violet-400" />
-              <span>AI Recommendation Chat</span>
+              <Sparkles className="w-4 h-4 text-violet-400 shrink-0" />
+              <span className="truncate hidden sm:inline">AI Recommendation Chat</span>
+              <span className="truncate sm:hidden">AI Chat</span>
             </h2>
             {activeProfileName && (
-              <p className="text-[11px] text-slate-500 font-medium">
+              <p className="text-[11px] text-slate-500 font-medium truncate hidden sm:block">
                 Consulting as <span className="text-violet-400 font-semibold">{activeProfileName}</span>
               </p>
             )}
           </div>
         </div>
 
-        {/* Beautiful Segmented Tab Switcher */}
-        <div className="bg-slate-950/80 p-0.5 rounded-xl border border-slate-800/80 flex items-center space-x-1 shrink-0">
+        {/* Beautiful Segmented Tab Switcher (Visible only on desktop screens) */}
+        <div className="hidden md:flex bg-slate-950/80 p-0.5 rounded-xl border border-slate-800/80 items-center space-x-1 shrink-0">
           <button
             type="button"
             onClick={() => setActiveTab('chat')}
@@ -473,7 +475,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           </button>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 shrink-0">
           {messages.length > 0 && activeTab === 'chat' && (
             <button
               onClick={() => {
@@ -481,6 +483,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                   onClearHistory();
                 }
               }}
+              type="button"
               onMouseEnter={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 setHoverHelp({
@@ -492,10 +495,10 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                 });
               }}
               onMouseLeave={() => setHoverHelp(null)}
-              className="flex items-center space-x-1.5 text-xs text-slate-400 hover:text-rose-400 bg-slate-950/40 hover:bg-slate-800/40 border border-slate-800 px-3 py-1.5 rounded-xl transition"
+              className="flex items-center space-x-1.5 text-xs text-slate-400 hover:text-rose-400 bg-slate-950/40 hover:bg-slate-800/40 border border-slate-800 px-3 py-1.5 rounded-xl transition cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>Reset History</span>
+              <span className="hidden sm:inline">Reset History</span>
             </button>
           )}
 
@@ -506,6 +509,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                   onClearRatings();
                 }
               }}
+              type="button"
               onMouseEnter={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 setHoverHelp({
@@ -520,7 +524,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
               className="flex items-center space-x-1.5 text-xs text-slate-400 hover:text-rose-400 bg-slate-950/40 hover:bg-slate-800/40 border border-slate-800 px-3 py-1.5 rounded-xl transition cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>Reset Ratings</span>
+              <span className="hidden sm:inline">Reset Ratings</span>
             </button>
           )}
         </div>
@@ -530,7 +534,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
       {activeTab === 'chat' ? (
         <>
           {/* Messages Feed */}
-          <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6">
+          <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6 pb-24 md:pb-8">
             {messages.length === 0 ? (
               /* Empty State UX */
               <div className="max-w-2xl mx-auto text-center py-12 space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-300">
@@ -718,7 +722,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           </div>
 
           {/* Input Form Footer */}
-          <div className="p-6 bg-slate-900/30 border-t border-slate-800/80 backdrop-blur-md z-10 shrink-0">
+          <div className="p-4 pb-20 md:p-6 bg-slate-900/30 border-t border-slate-800/80 backdrop-blur-md z-10 shrink-0">
             <form onSubmit={handleSubmit} className="max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-7xl mx-auto flex items-center space-x-3">
               <div className="relative flex-1">
                 <input
@@ -744,7 +748,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           </div>
         </>
       ) : activeTab === 'history' ? (
-        <div className="flex-1 overflow-y-auto bg-slate-950/20 pb-8 px-6 py-8">
+        <div className="flex-1 overflow-y-auto bg-slate-950/20 pb-24 md:pb-8 px-6 py-8">
           <div className="max-w-4xl mx-auto space-y-6">
             
             {/* Header / Intro */}
@@ -789,7 +793,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           </div>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto bg-slate-950/20 pb-8 space-y-6">
+        <div className="flex-1 overflow-y-auto bg-slate-950/20 pb-24 md:pb-8 space-y-6">
           {/* Gamified progress banner */}
           <div className="p-6 border-b border-slate-800 bg-slate-900/10">
             <div className={`p-4 rounded-2xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-4 max-w-4xl mx-auto text-left shadow-lg animate-in fade-in duration-200 ${
@@ -848,6 +852,40 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           )}
         </div>
       )}
+
+      {/* Mobile Bottom Navigation Bar */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-slate-900/95 border-t border-slate-800/80 flex items-center justify-around z-20 backdrop-blur-md pb-[safe] shadow-2xl">
+        <button
+          onClick={() => setActiveTab('chat')}
+          type="button"
+          className={`flex flex-col items-center justify-center space-y-1 py-1 px-3 rounded-xl transition cursor-pointer ${
+            activeTab === 'chat' ? 'text-violet-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <MessageSquare className="w-5 h-5" />
+          <span className="text-[10px] font-semibold">Chat</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('history')}
+          type="button"
+          className={`flex flex-col items-center justify-center space-y-1 py-1 px-3 rounded-xl transition cursor-pointer ${
+            activeTab === 'history' ? 'text-violet-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Clock className="w-5 h-5" />
+          <span className="text-[10px] font-semibold">History</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('ratings')}
+          type="button"
+          className={`flex flex-col items-center justify-center space-y-1 py-1 px-3 rounded-xl transition cursor-pointer ${
+            activeTab === 'ratings' ? 'text-violet-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Film className="w-5 h-5" />
+          <span className="text-[10px] font-semibold">Ratings</span>
+        </button>
+      </div>
 
             {/* Global Viewport-Level Draggable/Floating Hover Tooltip (Fixed position, 100% immune to scroll clippings) */}
       {hoverHelp && (

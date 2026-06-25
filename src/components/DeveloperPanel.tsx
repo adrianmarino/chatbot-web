@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Terminal, Code, Cpu, Clock, AlertTriangle, ChevronRight, ChevronLeft, EyeOff, Copy, Check, FileJson } from 'lucide-react';
+import { Terminal, Code, Cpu, Clock, AlertTriangle, ChevronRight, ChevronLeft, EyeOff, Copy, Check, FileJson, BookOpen, ExternalLink } from 'lucide-react';
+import { API_HOST } from '../services/api';
 import type { RecommendationsMetadata } from '../services/api';
 import { JsonView, darkStyles } from 'react-json-view-lite';
 import 'react-json-view-lite/dist/index.css';
@@ -27,7 +28,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
   curlCommand,
   rawApiResponse,
 }) => {
-  const [activeTab, setActiveTab] = useState<'logs' | 'prompt' | 'raw' | 'excluded' | 'curl' | 'json'>('logs');
+  const [activeTab, setActiveTab] = useState<'logs' | 'prompt' | 'raw' | 'excluded' | 'curl' | 'json' | 'resources'>('logs');
   const [width, setWidth] = useState(() => {
     const saved = localStorage.getItem('chatbot_dev_panel_width');
     return saved ? parseInt(saved, 10) : 768;
@@ -288,7 +289,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
         </div>
       </div>
 
-      {/* Tabs (Horizontal Navigation - 6 tabs) */}
+      {/* Tabs (Horizontal Navigation - 7 tabs) */}
       <div className="flex border-b border-slate-800 bg-slate-950/40 p-2 shrink-0 text-xs gap-2 px-4 md:pl-6 overflow-x-auto">
         {[
           { id: 'logs', label: 'Engine Execution Logs', icon: Terminal },
@@ -296,7 +297,8 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
           { id: 'raw', label: 'Verbatim LLM Response', icon: Cpu },
           { id: 'excluded', label: 'Excluded Movies List', icon: EyeOff },
           { id: 'curl', label: 'CURL Request', icon: Terminal },
-          { id: 'json', label: 'REST JSON Response', icon: FileJson }, // NEW TAB!
+          { id: 'json', label: 'REST JSON Response', icon: FileJson },
+          { id: 'resources', label: 'Resource Hub', icon: BookOpen }, // NEW TAB!
         ].map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -508,6 +510,97 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
                   No active API response captured. Make a request to see the raw JSON.
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* RESOURCE HUB TAB PANEL */}
+        {activeTab === 'resources' && (
+          <div className="space-y-6 h-full overflow-y-auto pb-10">
+            <div className="text-left space-y-1">
+              <h4 className="text-[10px] font-bold uppercase text-slate-500 tracking-wider flex items-center space-x-1.5 font-sans">
+                <BookOpen className="w-4 h-4 text-violet-400" />
+                <span>Project Resources & Academic Documentation</span>
+              </h4>
+              <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
+                Acceda a las interfaces de especificación, repositorios de código y flujos de Airflow que componen esta tesis doctoral y de maestría.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-sans">
+              
+              {/* Swagger Card */}
+              <a
+                href={`${API_HOST}/docs`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-slate-950 border border-slate-850 p-4 rounded-xl flex flex-col justify-between hover:border-violet-500/40 hover:bg-slate-900/40 transition duration-150 group text-left"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-slate-200">
+                    <span className="font-bold text-xs">Swagger UI Spec</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-violet-400 transition" />
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-relaxed">
+                    Documentación interactiva de la API de FastAPI. Permite realizar pruebas en vivo y consultar esquemas de datos (DTO).
+                  </p>
+                </div>
+              </a>
+
+              {/* ReDoc Card */}
+              <a
+                href={`${API_HOST}/redoc`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-slate-950 border border-slate-855 p-4 rounded-xl flex flex-col justify-between hover:border-violet-500/40 hover:bg-slate-900/40 transition duration-150 group text-left"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-slate-200">
+                    <span className="font-bold text-xs">ReDoc API Specs</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-violet-400 transition" />
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-relaxed">
+                    Especificación OpenAPI formateada de manera elegante y optimizada para lectura técnica estructurada.
+                  </p>
+                </div>
+              </a>
+
+              {/* Apache Airflow Card */}
+              <a
+                href="http://nonosoft.ddns.net:8686/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-slate-950 border border-slate-855 p-4 rounded-xl flex flex-col justify-between hover:border-violet-500/40 hover:bg-slate-900/40 transition duration-150 group text-left"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-slate-200">
+                    <span className="font-bold text-xs">Apache Airflow</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-violet-400 transition" />
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-relaxed">
+                    Panel de control de pipelines (DAGs) de entrenamiento. Coordina la actualización de embeddings y re-entrenamiento del CF.
+                  </p>
+                </div>
+              </a>
+
+              {/* Thesis Repository Card */}
+              <a
+                href="https://github.com/adrianmarino/thesis-paper"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-slate-950 border border-slate-855 p-4 rounded-xl flex flex-col justify-between hover:border-violet-500/40 hover:bg-slate-900/40 transition duration-150 group text-left"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-slate-200">
+                    <span className="font-bold text-xs">Thesis Repository</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-violet-400 transition" />
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-relaxed">
+                    Código fuente unificado del proyecto de tesis. Contiene el backend de chatbot-api, algoritmos del recomendador, y documentación.
+                  </p>
+                </div>
+              </a>
+
             </div>
           </div>
         )}

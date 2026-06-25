@@ -1,8 +1,9 @@
 import React, { useRef, useEffect } from 'react';
-import { Send, Sparkles, Trash2, ArrowRight, Loader2, Bot, User, Menu, RotateCw, CheckCircle2, MessageSquare, Film, Lock, Unlock, Award, Clock } from 'lucide-react';
+import { Send, Sparkles, Trash2, ArrowRight, Loader2, Bot, User, Menu, RotateCw, CheckCircle2, MessageSquare, Film, Lock, Unlock, Award, Clock, Cpu } from 'lucide-react';
 import { api } from '../services/api';
 import type { Recommendation, RecommendationsMetadata } from '../services/api';
 import { MovieGrid } from './MovieGrid';
+import { DeveloperPanel } from './DeveloperPanel';
 
 export interface ChatMessage {
   id: string;
@@ -177,11 +178,16 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
   onSelectMessage,
 }) => {
   const [inputText, setInputText] = React.useState('');
-  const [activeTab, setActiveTab] = React.useState<'chat' | 'ratings' | 'history'>('chat');
+  const [activeTab, setActiveTab] = React.useState<'chat' | 'ratings' | 'history' | 'insights'>('chat');
   const [seenMovies, setSeenMovies] = React.useState<Recommendation[]>([]);
   const [isLoadingSeen, setIsLoadingSeen] = React.useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const [hoverHelp, setHoverHelp] = React.useState<HoverHelp | null>(null);
+
+  // Resolve active audited message memo
+  const selectedMessage = React.useMemo(() => {
+    return messages.find((m) => m.id === selectedMessageId) || null;
+  }, [messages, selectedMessageId]);
 
   // Group messages into paired historical queries
   const historicalQueries = React.useMemo(() => {
@@ -615,8 +621,8 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                               msg.text
                             ) : (
                               <div className="space-y-4">
-                                {/* 1. If text is present, render formatted text */}
-                                {msg.text && (
+                                {/* 1. If text is present, render formatted text (Only if there are no recommendations to keep layout extremely clean!) */}
+                                {msg.text && !hasRecs && (
                                   <div className="space-y-1">{renderFormattedText(msg.text)}</div>
                                 )}
                                 
@@ -747,6 +753,16 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
             </form>
           </div>
         </>
+      ) : activeTab === 'insights' ? (
+        <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden pb-16">
+          <DeveloperPanel
+            metadata={selectedMessage?.metadata || (messages.slice().reverse().find(m => m.sender === 'bot' && m.metadata)?.metadata) || null}
+            isOpen={true}
+            onToggle={() => setActiveTab('chat')}
+            curlCommand={selectedMessage?.curlCommand || (messages.slice().reverse().find(m => m.sender === 'bot' && m.curlCommand)?.curlCommand) || ''}
+            rawApiResponse={selectedMessage?.rawApiResponse || (messages.slice().reverse().find(m => m.sender === 'bot' && m.rawApiResponse)?.rawApiResponse) || null}
+          />
+        </div>
       ) : activeTab === 'history' ? (
         <div className="flex-1 overflow-y-auto bg-slate-950/20 pb-24 md:pb-8 px-6 py-8">
           <div className="max-w-4xl mx-auto space-y-6">
@@ -884,6 +900,16 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
         >
           <Film className="w-5 h-5" />
           <span className="text-[10px] font-semibold">Ratings</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('insights')}
+          type="button"
+          className={`flex flex-col items-center justify-center space-y-1 py-1 px-3 rounded-xl transition cursor-pointer ${
+            activeTab === 'insights' ? 'text-violet-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Cpu className="w-5 h-5" />
+          <span className="text-[10px] font-semibold">Insights</span>
         </button>
       </div>
 

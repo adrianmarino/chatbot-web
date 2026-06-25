@@ -14,13 +14,7 @@ interface DeveloperPanelProps {
   inline?: boolean;     // Render inline without fixed overlay on mobile
 }
 
-interface HoverHelp {
-  title: string;
-  explanation: string;
-  lower: string;
-  higher: string;
-  rect: DOMRect;
-}
+
 
 export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
   metadata,
@@ -42,7 +36,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
     localStorage.setItem('chatbot_dev_panel_width', String(width));
   }, [width]);
   const [isCopied, setIsCopied] = useState(false);
-  const [hoverHelp, setHoverHelp] = useState<HoverHelp | null>(null);
+
   const dragRef = useRef<HTMLDivElement>(null);
 
   // Drag handlers for resizability
@@ -88,35 +82,6 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
     } catch (err) {
       console.error('Failed to copy text:', err);
     }
-  };
-
-  // Viewport Collision-Aware Tooltip Positioning Algorithm
-  const calculateTooltipStyles = (rect: DOMRect | null) => {
-    if (!rect) return {};
-
-    const tooltipWidth = 320;
-    const tooltipHeight = 420; // Increased to 420px to prevent scrollbars completely
-    const margin = 12;
-
-    // 1. Horizontal Placement (Prefer left since panel is on the right edge)
-    let left = rect.left - tooltipWidth - margin;
-    if (left < 0) {
-      left = rect.right + margin;
-    }
-    left = Math.max(margin, left);
-
-    // 2. Vertical Placement (Center to element, clamp inside viewport)
-    let top = rect.top + rect.height / 2 - tooltipHeight / 2;
-    top = Math.max(margin, top);
-    top = Math.min(top, window.innerHeight - tooltipHeight - margin);
-
-    return {
-      position: 'fixed' as const,
-      left: `${left}px`,
-      top: `${top}px`,
-      width: `${tooltipWidth}px`,
-      maxHeight: `${tooltipHeight}px`,
-    };
   };
 
   // Early return if the developer panel is collapsed
@@ -249,53 +214,6 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
         )}
       </div>
 
-      {/* Metric Summary Cards */}
-      <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 shrink-0 border-b border-slate-800 bg-slate-950/20 px-4 md:pl-6">
-        <div
-          onMouseEnter={(e) => {
-            const rect = e.currentTarget.getBoundingClientRect();
-            setHoverHelp({
-              title: 'Tiempo de Respuesta (Latencia)',
-              explanation: 'Mide los segundos transcurridos desde que envías tu mensaje hasta que se renderiza el resultado final. Suma: búsqueda semántica/colaborativa + inferencia local de Ollama + mapeo de metadatos.',
-              lower: 'Inferencia ultra rápida (ej. usando gemma3:4b o modelos de menos parámetros).',
-              higher: 'Inferencia pesada (ej. usando deepseek-r1 o modelos de razonamiento profundo).',
-              rect,
-            });
-          }}
-          onMouseLeave={() => setHoverHelp(null)}
-          className="bg-slate-950 border border-slate-850 p-4 rounded-xl space-y-1 text-left shadow-md cursor-help hover:border-slate-700 transition"
-        >
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-[10px] font-bold uppercase tracking-wider">Total Pipeline Latency</span>
-            <Clock className="w-4 h-4 text-indigo-400" />
-          </div>
-          <p className="text-xl font-black text-slate-200">{elapsedTime}</p>
-          <p className="text-[10px] text-slate-500">Retrieval + LLM context decision and metadata mapping</p>
-        </div>
-
-        <div
-          onMouseEnter={(e) => {
-            const rect = e.currentTarget.getBoundingClientRect();
-            setHoverHelp({
-              title: 'Candidatos Excluidos (Post-LLM Filtering / Augmentation Mismatch)',
-              explanation: 'Representan las películas que fueron extraídas de la base de datos durante la fase de "Augmentation" (Búsqueda Vectorial por similitud a partir de los títulos que devolvió el LLM) pero que la RecommendationsFactory consideró que no eran lo suficientemente similares al título o año original sugerido por el LLM, o bien que ya habían sido agregadas previamente. Se excluyen en la etapa de Resolución final para mantener la precisión.',
-              lower: 'Alta precisión del RAG: los candidatos extraídos coincidieron casi a la perfección con lo que propuso el LLM (Cosine Similarity alto).',
-              higher: 'El Augmentation trajo mucha "basura": películas semánticamente lejanas al título/año propuesto por el LLM, por ende fueron descartadas.',
-              rect,
-            });
-          }}
-          onMouseLeave={() => setHoverHelp(null)}
-          className="bg-slate-950 border border-slate-855 p-4 rounded-xl space-y-1 text-left shadow-md cursor-help hover:border-slate-700 transition"
-        >
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-[10px] font-bold uppercase tracking-wider">Filtered Out Candidates</span>
-            <AlertTriangle className="w-4 h-4 text-amber-500" />
-          </div>
-          <p className="text-xl font-black text-slate-200">{excludedItems.length} movies</p>
-          <p className="text-[10px] text-slate-500">Candidates rejected by the LLM context filter</p>
-        </div>
-      </div>
-
       {/* Tabs (Horizontal Navigation - 7 tabs) */}
       <div className="flex border-b border-slate-800 bg-slate-950/40 p-2 shrink-0 text-xs gap-2 px-4 md:pl-6 overflow-x-auto">
         {[
@@ -329,17 +247,30 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto p-5 text-left font-mono text-xs px-4 md:pl-6 bg-slate-950/20">
         {activeTab === 'logs' && (
-          <div className="space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-850 h-full overflow-y-auto shadow-inner">
-            {logs.length === 0 ? (
-              <div className="text-slate-600 italic py-8 text-center font-sans">No active logs captured. Ask a question to see real-time logs.</div>
-            ) : (
-              logs.map((log, idx) => (
-                <div key={idx} className="border-b border-slate-900 pb-2.5 mb-2.5 last:border-0 text-slate-300 leading-relaxed text-[11px] flex">
-                  <span className="text-slate-600 select-none mr-3 shrink-0">[{idx + 1}]</span>
-                  <span className="flex-1">{log}</span>
+          <div className="h-full flex flex-col space-y-4">
+            {/* Contextual Latency Banner */}
+            {elapsedTime !== 'N/A' && (
+              <div className="bg-indigo-500/5 border border-indigo-500/15 p-3.5 rounded-xl flex items-center justify-between text-[11px] text-indigo-300 font-sans shadow-md shrink-0">
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-4 h-4 text-indigo-400" />
+                  <span className="font-bold uppercase tracking-wider text-[10px]">Total Pipeline Latency</span>
                 </div>
-              ))
+                <span className="font-mono text-xs bg-slate-950 px-2 py-0.5 rounded border border-slate-850 text-slate-200">{elapsedTime}</span>
+              </div>
             )}
+            
+            <div className="space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-850 flex-1 overflow-y-auto shadow-inner">
+              {logs.length === 0 ? (
+                <div className="text-slate-600 italic py-8 text-center font-sans">No active logs captured. Ask a question to see real-time logs.</div>
+              ) : (
+                logs.map((log, idx) => (
+                  <div key={idx} className="border-b border-slate-900 pb-2.5 mb-2.5 last:border-0 text-slate-300 leading-relaxed text-[11px] flex">
+                    <span className="text-slate-600 select-none mr-3 shrink-0">[{idx + 1}]</span>
+                    <span className="flex-1">{log}</span>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
 
@@ -358,44 +289,55 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
         )}
 
         {activeTab === 'excluded' && (
-          <div className="h-full overflow-y-auto">
-            {excludedItems.length === 0 ? (
-              <div className="bg-slate-950 p-6 rounded-xl border border-slate-855 text-slate-500 italic text-center shadow-inner font-sans">
-                No candidate movies were filtered out by the LLM context filter.
+          <div className="h-full flex flex-col space-y-4">
+            {/* Contextual Excluded Candidates Banner */}
+            <div className="bg-amber-500/5 border border-amber-500/15 p-3.5 rounded-xl flex items-center justify-between text-[11px] text-amber-300 font-sans shadow-md shrink-0">
+              <div className="flex items-center space-x-2">
+                <AlertTriangle className="w-4 h-4 text-amber-500" />
+                <span className="font-bold uppercase tracking-wider text-[10px]">Filtered Out Candidates</span>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {excludedItems.map((movie) => (
-                  <div
-                    key={movie.title}
-                    className="bg-slate-950 border border-slate-855/80 p-4 rounded-xl text-[11px] space-y-2.5 text-left flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="flex items-start justify-between border-b border-slate-900 pb-1.5 mb-1.5">
-                        <div className="truncate">
-                          <h5 className="font-bold text-slate-200 truncate">{movie.title}</h5>
-                          <span className="text-slate-500 text-[10px]">{movie.release}</span>
-                        </div>
-                        {movie.metadata?.db_item?.query_sim !== undefined && (
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-bold border border-amber-500/15 shrink-0 ml-2">
-                            Sim: {movie.metadata.db_item.query_sim.toFixed(3)}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-slate-400 line-clamp-3 leading-relaxed font-sans">{movie.description}</p>
-                    </div>
+              <span className="font-mono text-xs bg-slate-950 px-2 py-0.5 rounded border border-slate-850 text-slate-200">{excludedItems.length} movies</span>
+            </div>
 
-                    <div className="flex flex-wrap gap-1 mt-2 border-t border-slate-900 pt-1.5">
-                      {movie.genres.map((g) => (
-                        <span key={g} className="text-[9px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-855 font-sans">
-                          {g}
-                        </span>
-                      ))}
+            <div className="flex-1 overflow-y-auto">
+              {excludedItems.length === 0 ? (
+                <div className="bg-slate-950 p-6 rounded-xl border border-slate-855 text-slate-500 italic text-center shadow-inner font-sans h-full flex items-center justify-center">
+                  No candidate movies were filtered out by the LLM context filter.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {excludedItems.map((movie) => (
+                    <div
+                      key={movie.title}
+                      className="bg-slate-950 border border-slate-855/80 p-4 rounded-xl text-[11px] space-y-2.5 text-left flex flex-col justify-between h-full"
+                    >
+                      <div>
+                        <div className="flex items-start justify-between border-b border-slate-900 pb-1.5 mb-1.5">
+                          <div className="truncate">
+                            <h5 className="font-bold text-slate-200 truncate">{movie.title}</h5>
+                            <span className="text-slate-500 text-[10px]">{movie.release}</span>
+                          </div>
+                          {movie.metadata?.db_item?.query_sim !== undefined && (
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-bold border border-amber-500/15 shrink-0 ml-2">
+                              Sim: {movie.metadata.db_item.query_sim.toFixed(3)}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-slate-400 line-clamp-3 leading-relaxed font-sans">{movie.description}</p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-1 mt-2 border-t border-slate-900 pt-1.5">
+                        {movie.genres.map((g) => (
+                          <span key={g} className="text-[9px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-855 font-sans">
+                            {g}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -613,30 +555,6 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
         )}
       </div>
 
-      {/* Viewport-level Hover Tooltip */}
-      {hoverHelp && (
-        <div
-          style={calculateTooltipStyles(hoverHelp.rect)}
-          className="bg-slate-950/95 border border-slate-800 text-[11px] text-slate-300 rounded-2xl shadow-2xl space-y-3 z-50 pointer-events-none animate-in fade-in zoom-in-95 duration-100 font-sans leading-relaxed backdrop-blur-sm p-4 overflow-y-auto"
-        >
-          <div className="font-bold text-slate-100 flex items-center space-x-1.5 border-b border-slate-800 pb-1.5 shrink-0">
-            <span>💡</span>
-            <span>{hoverHelp.title}</span>
-          </div>
-          <p className="font-medium text-slate-300 shrink-0">{hoverHelp.explanation}</p>
-          
-          <div className="grid grid-cols-2 gap-2 text-[10px] pt-2 border-t border-slate-900 font-sans shrink-0">
-            <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-850/40">
-              <span className="font-bold text-indigo-400 block mb-0.5 uppercase tracking-wider text-[8px]">Valores Bajos:</span>
-              <span className="text-slate-400 font-normal">{hoverHelp.lower}</span>
-            </div>
-            <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-850/40">
-              <span className="font-bold text-violet-400 block mb-0.5 uppercase tracking-wider text-[8px]">Valores Altos:</span>
-              <span className="text-slate-400 font-normal">{hoverHelp.higher}</span>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

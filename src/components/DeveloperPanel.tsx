@@ -182,7 +182,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
       className={`bg-slate-900 text-slate-100 flex flex-col overflow-hidden shrink-0 transition-all ${
         inline 
           ? "w-full h-full relative" 
-          : "border-l border-slate-800 h-[100dvh] md:h-screen z-30 shadow-2xl animate-in slide-in-from-right duration-200 relative fixed md:relative inset-y-0 right-0 w-full md:w-auto"
+          : "hidden md:flex border-l border-slate-800 h-[100dvh] md:h-screen z-30 shadow-2xl animate-in slide-in-from-right duration-200 relative fixed md:relative inset-y-0 right-0 w-full md:w-auto"
       }`}
     >
       {/* Draggable Resizer Handler */}

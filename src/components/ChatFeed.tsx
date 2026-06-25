@@ -32,6 +32,9 @@ interface ChatFeedProps {
   onToggleSidebar: () => void;
   selectedMessageId: string | null;
   onSelectMessage: (id: string, metadata: RecommendationsMetadata | null, curlCommand: string, rawApiResponse?: any) => void;
+  activeMetadata: RecommendationsMetadata | null;
+  activeCurl: string;
+  activeRawResponse: any;
 }
 
 const SUGGESTED_PROMPTS = [
@@ -52,6 +55,7 @@ interface HoverHelp {
 interface QueryHistoryItemProps {
   query: {
     id: string;
+    botMsgId?: string;
     queryText: string;
     timestamp: Date;
     modelName?: string;
@@ -64,7 +68,7 @@ interface QueryHistoryItemProps {
   ratedMovies: Record<string, number>;
   onSendMessage: (text: string) => void;
   onSelectMessage: (id: string, metadata: RecommendationsMetadata | null, curlCommand: string, rawApiResponse?: any) => void;
-  setActiveTab: (tab: 'chat' | 'ratings' | 'history') => void;
+  setActiveTab: (tab: 'chat' | 'ratings' | 'history' | 'devtools') => void;
 }
 
 const QueryHistoryItem: React.FC<QueryHistoryItemProps> = ({
@@ -132,7 +136,7 @@ const QueryHistoryItem: React.FC<QueryHistoryItemProps> = ({
             <button
               onClick={() => {
                 onSelectMessage(
-                  query.id.replace('query-hist-', ''),
+                  query.botMsgId || query.id.replace('query-hist-', ''),
                   query.metadata || null,
                   query.curlCommand || '',
                   query.rawApiResponse
@@ -176,6 +180,9 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
   onToggleSidebar,
   selectedMessageId,
   onSelectMessage,
+  activeMetadata,
+  activeCurl,
+  activeRawResponse,
 }) => {
   const [inputText, setInputText] = React.useState('');
   const [activeTab, setActiveTab] = React.useState<'chat' | 'ratings' | 'history' | 'devtools'>('chat');
@@ -184,15 +191,13 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
   const bottomRef = useRef<HTMLDivElement>(null);
   const [hoverHelp, setHoverHelp] = React.useState<HoverHelp | null>(null);
 
-  // Resolve active audited message memo
-  const selectedMessage = React.useMemo(() => {
-    return messages.find((m) => m.id === selectedMessageId) || null;
-  }, [messages, selectedMessageId]);
+
 
   // Group messages into paired historical queries
   const historicalQueries = React.useMemo(() => {
     const queries: {
       id: string;
+      botMsgId?: string;
       queryText: string;
       timestamp: Date;
       modelName?: string;
@@ -215,6 +220,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
         
         queries.push({
           id: `query-hist-${msg.id}`,
+          botMsgId: botMsg?.id,
           queryText: msg.text,
           timestamp: msg.timestamp,
           modelName: botMsg?.metadata?.response?.metadata?.llm || undefined,
@@ -410,17 +416,6 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           <button
             onClick={onToggleSidebar}
             type="button"
-            onMouseEnter={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              setHoverHelp({
-                title: 'Alternar Barra Lateral / Toggle Sidebar',
-                explanation: 'Oculta o expande la barra lateral de perfiles. Colapsarla maximiza el área de visualización del chat, dándote espacio de pantalla completa (Workbench) para evaluar las películas e insights side-by-side.',
-                lower: 'Barra lateral fija de 320px visible.',
-                higher: 'Pantalla completa; chat e insights comparten la totalidad del monitor.',
-                rect,
-              });
-            }}
-            onMouseLeave={() => setHoverHelp(null)}
             className="p-1.5 text-slate-400 hover:text-violet-400 hover:bg-slate-855 rounded-lg transition mr-0.5 md:mr-1 animate-in cursor-pointer"
             title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
@@ -490,17 +485,6 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                 }
               }}
               type="button"
-              onMouseEnter={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                setHoverHelp({
-                  title: 'Clear Context Memory / Resetear Historial',
-                  explanation: 'Borra permanentemente el historial conversacional (memoria a corto plazo) de este usuario de MongoDB. Esto evita que los temas y películas hablados anteriormente sesguen tus nuevas consultas.',
-                  lower: 'Se mantiene el hilo y contexto previo.',
-                  higher: 'Wipe total; el LLM te atenderá sin memoria previa, libre de sesgos contextuales.',
-                  rect,
-                });
-              }}
-              onMouseLeave={() => setHoverHelp(null)}
               className="flex items-center space-x-1.5 text-xs text-slate-400 hover:text-rose-400 bg-slate-950/40 hover:bg-slate-800/40 border border-slate-800 px-3 py-1.5 rounded-xl transition cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -516,17 +500,6 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                 }
               }}
               type="button"
-              onMouseEnter={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                setHoverHelp({
-                  title: 'Reset Ratings / Borrar Calificaciones',
-                  explanation: 'Elimina permanentemente todas tus calificaciones de películas de MongoDB. Esto restablecerá tu perfil a Cold-Start (< 20 calificaciones), desactivando las recomendaciones colaborativas neurales hasta que vuelvas a calificar películas.',
-                  lower: 'Se mantienen tus calificaciones actuales.',
-                  higher: 'Borrado absoluto; tu perfil vuelve a cero calificaciones, libre de historiales de votación.',
-                  rect,
-                });
-              }}
-              onMouseLeave={() => setHoverHelp(null)}
               className="flex items-center space-x-1.5 text-xs text-slate-400 hover:text-rose-400 bg-slate-950/40 hover:bg-slate-800/40 border border-slate-800 px-3 py-1.5 rounded-xl transition cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -756,11 +729,11 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
       ) : activeTab === 'devtools' ? (
         <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden pb-16">
           <DeveloperPanel
-            metadata={selectedMessage?.metadata || (messages.slice().reverse().find(m => m.sender === 'bot' && m.metadata)?.metadata) || null}
+            metadata={activeMetadata || (messages.slice().reverse().find(m => m.sender === 'bot' && m.metadata)?.metadata) || null}
             isOpen={true}
             onToggle={() => setActiveTab('chat')}
-            curlCommand={selectedMessage?.curlCommand || (messages.slice().reverse().find(m => m.sender === 'bot' && m.curlCommand)?.curlCommand) || ''}
-            rawApiResponse={selectedMessage?.rawApiResponse || (messages.slice().reverse().find(m => m.sender === 'bot' && m.rawApiResponse)?.rawApiResponse) || null}
+            curlCommand={activeCurl || (messages.slice().reverse().find(m => m.sender === 'bot' && m.curlCommand)?.curlCommand) || ''}
+            rawApiResponse={activeRawResponse || (messages.slice().reverse().find(m => m.sender === 'bot' && m.rawApiResponse)?.rawApiResponse) || null}
             inline={true}
           />
         </div>

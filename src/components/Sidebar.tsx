@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Plus, Settings, Bot, Sparkles, Trash2, Filter, Sliders, Database, Users, Info, Save, Download, Upload, ChevronDown, ChevronRight, X } from 'lucide-react';
+import { User, Plus, Settings, Bot, Sparkles, Trash2, Sliders, Database, Users, Info, Save, Download, Upload, ChevronDown, ChevronRight, X } from 'lucide-react';
 import type { UserProfile } from '../services/api';
 
 
@@ -32,7 +32,7 @@ interface SidebarProps {
   profiles: UserProfile[];
   activeProfile: UserProfile | null;
   onSelectProfile: (profile: UserProfile) => void;
-  onCreateProfile: (profile: UserProfile) => Promise<void>;
+  onOpenCreateProfileModal: () => void;
   onDeleteProfile: (email: string) => Promise<void>;
   models: string[];
   selectedModel: string;
@@ -89,11 +89,7 @@ interface SidebarProps {
   onClose: () => void;  // Responsive mobile drawer close handler
 }
 
-const AVAILABLE_GENRES = [
-  'Action', 'Adventure', 'Comedy', 'Drama', 'Sci-Fi', 
-  'Thriller', 'Horror', 'Romance', 'Fantasy', 'Mystery', 
-  'Crime', 'Animation', 'Documentary', 'Suspense'
-];
+
 
 interface HoverHelp {
   title: string;
@@ -107,7 +103,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   profiles,
   activeProfile,
   onSelectProfile,
-  onCreateProfile,
+  onOpenCreateProfileModal,
   onDeleteProfile,
   models,
   selectedModel,
@@ -158,7 +154,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   ratingsCount,
 }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [showSettings, setShowSettings] = useState(() => {
     return localStorage.getItem('chatbot_show_settings') === 'true';
   });
@@ -373,65 +369,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
 
 
-  // New profile form state
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [age, setAge] = useState<number>(30);
-  const [genre, setGenre] = useState('Male');
-  const [nationality, setNationality] = useState('');
-  const [work, setWork] = useState('');
-  const [studies, setStudies] = useState('');
-  const [releaseFrom, setReleaseFrom] = useState('1990');
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleGenreToggle = (g: string) => {
-    if (selectedGenres.includes(g)) {
-      setSelectedGenres(selectedGenres.filter((item) => item !== g));
-    } else {
-      setSelectedGenres([...selectedGenres, g]);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !email) return;
-    setIsSubmitting(true);
-    try {
-      const newProfile: UserProfile = {
-        name,
-        email,
-        metadata: {
-          studies,
-          age: Number(age),
-          genre,
-          nationality,
-          work,
-          preferred_movies: {
-            release: { from: releaseFrom },
-            genres: selectedGenres.map((g) => g.toLowerCase()),
-          },
-        },
-      };
-      await onCreateProfile(newProfile);
-      setIsModalOpen(false);
-      // Reset form
-      setName('');
-      setEmail('');
-      setAge(30);
-      setGenre('Male');
-      setNationality('');
-      setWork('');
-      setStudies('');
-      setReleaseFrom('1990');
-      setSelectedGenres([]);
-    } catch (err) {
-      console.error(err);
-      alert('Failed to create profile. Ensure email is unique.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const showHelp = (e: React.MouseEvent, title: string, explanation: string, lower: string, higher: string) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -531,9 +469,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               Active User Profiles
             </span>
             <button
-              onClick={() => setIsModalOpen(true)}
-              onMouseEnter={(e) => showHelp(e, "Registrar Nuevo Perfil", "Permite crear un nuevo usuario con preferencias de géneros y años de lanzamiento específicos en MongoDB para resolver el Inicio Frío (Cold-Start).", "Inicio frío absoluto por falta de datos.", "Ajuste preciso de las restricciones e intenciones del usuario.")}
-              onMouseLeave={hideHelp}
+              onClick={onOpenCreateProfileModal}
               className="p-1 text-slate-400 hover:text-violet-400 hover:bg-slate-800 rounded-lg transition"
               title="Create new profile"
             >
@@ -1298,163 +1234,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
 
       </div>
-
-      {/* Modal - Create User Profile */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-left">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="p-6 border-b border-slate-800 bg-gradient-to-r from-violet-600/10 to-transparent flex justify-between items-center">
-              <h3 className="text-lg font-bold text-slate-100 flex items-center space-x-2">
-                <User className="w-5 h-5 text-violet-400" />
-                <span>Create New User Profile</span>
-              </h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-200 transition text-lg"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-              <div className="grid grid-cols-2 gap-4 text-left">
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-medium">Full Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="John Doe"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500 transition"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-medium">Email *</label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="john@example.com"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500 transition"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4 text-left">
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-medium">Age</label>
-                  <input
-                    type="number"
-                    value={age}
-                    onChange={(e) => setAge(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500 transition"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-medium">Gender</label>
-                  <select
-                    value={genre}
-                    onChange={(e) => setGenre(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500 transition cursor-pointer"
-                  >
-                    <option>Male</option>
-                    <option>Female</option>
-                    <option>Other</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-medium">Release Year From</label>
-                  <input
-                    type="text"
-                    value={releaseFrom}
-                    onChange={(e) => setReleaseFrom(e.target.value)}
-                    placeholder="1990"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500 transition"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4 text-left">
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-medium">Nationality</label>
-                  <input
-                    type="text"
-                    value={nationality}
-                    onChange={(e) => setNationality(e.target.value)}
-                    placeholder="Argentina"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500 transition"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-medium">Occupation</label>
-                  <input
-                    type="text"
-                    value={work}
-                    onChange={(e) => setWork(e.target.value)}
-                    placeholder="Developer"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500 transition"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-medium">Studies</label>
-                  <input
-                    type="text"
-                    value={studies}
-                    onChange={(e) => setStudies(e.target.value)}
-                    placeholder="Engineering"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500 transition"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1 text-left">
-                <label className="text-xs text-slate-400 font-medium flex items-center space-x-1">
-                  <Filter className="w-3.5 h-3.5" />
-                  <span>Favorite Movie Genres</span>
-                </label>
-                <div className="grid grid-cols-3 gap-2 bg-slate-950/50 border border-slate-800/80 p-3 rounded-xl max-h-40 overflow-y-auto">
-                  {AVAILABLE_GENRES.map((g) => {
-                    const isChecked = selectedGenres.includes(g);
-                    return (
-                      <button
-                        type="button"
-                        key={g}
-                        onClick={() => handleGenreToggle(g)}
-                        className={`text-xs px-2.5 py-1.5 rounded-lg border text-left transition truncate font-medium ${
-                          isChecked
-                            ? 'bg-violet-950/60 border-violet-500/60 text-violet-300 font-bold'
-                            : 'bg-slate-900 border-slate-800 hover:bg-slate-850 hover:border-slate-700 text-slate-400'
-                        }`}
-                      >
-                        {g}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-sm text-slate-400 hover:text-slate-200 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-gradient-to-r from-violet-600 to-indigo-500 hover:from-violet-500 hover:to-indigo-400 text-white font-semibold px-5 py-2 rounded-xl text-sm transition shadow-lg shadow-indigo-500/20 disabled:opacity-50"
-                >
-                  {isSubmitting ? 'Creating...' : 'Create Profile'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Global Viewport-Level Draggable/Floating Hover Tooltip (Fixed position, 100% immune to scroll clippings) */}
       {hoverHelp && (

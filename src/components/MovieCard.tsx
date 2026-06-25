@@ -236,15 +236,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 
       {/* Card Footer - Stars Interactive Rating */}
       <div
-        onMouseEnter={(e) => showHelp(
-          e,
-          "Calificación en Tiempo Real",
-          "Califica la película para registrar una interacción (rating) inmediata en MongoDB. Esto alimenta tu Filtrado Colaborativo. Al superar las 20 notas, el motor activará automáticamente predicciones por similitud de usuarios.",
-          "Falta de opiniones registradas en tu historial (Inicio Frío).",
-          "Modelo colaborativo altamente personalizado y predictivo (Warm-Start)."
-        )}
-        onMouseLeave={hideHelp}
-        className="px-4 py-3 bg-slate-950/40 border-t border-slate-800/80 flex items-center justify-between cursor-help hover:bg-slate-950/80 transition duration-150"
+        className="px-4 py-3 bg-slate-950/40 border-t border-slate-800/80 flex items-center justify-between hover:bg-slate-950/80 transition duration-150"
       >
         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
           {isRated ? 'Your Rating:' : 'Rate this movie:'}

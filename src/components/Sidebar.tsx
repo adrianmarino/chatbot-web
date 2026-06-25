@@ -490,7 +490,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside className={`
-      w-80 bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col h-screen overflow-hidden shrink-0 z-50
+      w-80 bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col h-[100dvh] overflow-hidden shrink-0 z-50
       fixed md:relative inset-y-0 left-0 shadow-2xl md:shadow-none
       transition-transform duration-300 ease-in-out md:translate-x-0
       ${isOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -523,7 +523,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Main scrollable body */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 pb-32 md:pb-8">
         {/* Profile management */}
         <div>
           <div className="flex items-center justify-between mb-4">

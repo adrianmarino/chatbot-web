@@ -761,6 +761,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
             onToggle={() => setActiveTab('chat')}
             curlCommand={selectedMessage?.curlCommand || (messages.slice().reverse().find(m => m.sender === 'bot' && m.curlCommand)?.curlCommand) || ''}
             rawApiResponse={selectedMessage?.rawApiResponse || (messages.slice().reverse().find(m => m.sender === 'bot' && m.rawApiResponse)?.rawApiResponse) || null}
+            inline={true}
           />
         </div>
       ) : activeTab === 'history' ? (

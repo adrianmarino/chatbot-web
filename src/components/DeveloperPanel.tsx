@@ -11,6 +11,7 @@ interface DeveloperPanelProps {
   onToggle: () => void;
   curlCommand: string; // The curl command for the active audited query
   rawApiResponse?: any; // The raw JSON API response
+  inline?: boolean;     // Render inline without fixed overlay on mobile
 }
 
 interface HoverHelp {
@@ -27,6 +28,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
   onToggle,
   curlCommand,
   rawApiResponse,
+  inline = false,
 }) => {
   const [activeTab, setActiveTab] = useState<'logs' | 'prompt' | 'raw' | 'excluded' | 'curl' | 'json' | 'resources'>('logs');
   const [width, setWidth] = useState(() => {
@@ -211,8 +213,12 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
 
   return (
     <div
-      style={window.innerWidth >= 768 ? { width: `${width}px` } : {}}
-      className="bg-slate-900 border-l border-slate-800 text-slate-100 flex flex-col h-[100dvh] md:h-screen overflow-hidden shrink-0 z-30 shadow-2xl animate-in slide-in-from-right duration-200 relative fixed md:relative inset-y-0 right-0 w-full md:w-auto"
+      style={(!inline && window.innerWidth >= 768) ? { width: `${width}px` } : {}}
+      className={`bg-slate-900 text-slate-100 flex flex-col overflow-hidden shrink-0 transition-all ${
+        inline 
+          ? "w-full h-full relative" 
+          : "border-l border-slate-800 h-[100dvh] md:h-screen z-30 shadow-2xl animate-in slide-in-from-right duration-200 relative fixed md:relative inset-y-0 right-0 w-full md:w-auto"
+      }`}
     >
       {/* Draggable Resizer Handler */}
       <div
@@ -231,15 +237,17 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
           <span className="truncate hidden sm:inline">Research & Engine Insights Console</span>
           <span className="truncate sm:hidden">Engine Insights</span>
         </div>
-        <div className="flex items-center space-x-2 shrink-0">
-          <button
-            onClick={onToggle}
-            type="button"
-            className="p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition cursor-pointer"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
+        {!inline && (
+          <div className="flex items-center space-x-2 shrink-0">
+            <button
+              onClick={onToggle}
+              type="button"
+              className="p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition cursor-pointer"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Metric Summary Cards */}

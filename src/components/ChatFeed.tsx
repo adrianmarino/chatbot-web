@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Send, Sparkles, Trash2, ArrowRight, Loader2, Bot, User, Menu, RotateCw, CheckCircle2, MessageSquare, Film, Lock, Unlock, Award, Clock, Cpu } from 'lucide-react';
+import { Send, Sparkles, Trash2, ArrowRight, Loader2, Bot, User, Menu, RotateCw, CheckCircle2, MessageSquare, Film, Lock, Unlock, Award, Clock, Terminal } from 'lucide-react';
 import { api } from '../services/api';
 import type { Recommendation, RecommendationsMetadata } from '../services/api';
 import { MovieGrid } from './MovieGrid';
@@ -178,7 +178,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
   onSelectMessage,
 }) => {
   const [inputText, setInputText] = React.useState('');
-  const [activeTab, setActiveTab] = React.useState<'chat' | 'ratings' | 'history' | 'insights'>('chat');
+  const [activeTab, setActiveTab] = React.useState<'chat' | 'ratings' | 'history' | 'devtools'>('chat');
   const [seenMovies, setSeenMovies] = React.useState<Recommendation[]>([]);
   const [isLoadingSeen, setIsLoadingSeen] = React.useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -753,7 +753,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
             </form>
           </div>
         </>
-      ) : activeTab === 'insights' ? (
+      ) : activeTab === 'devtools' ? (
         <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden pb-16">
           <DeveloperPanel
             metadata={selectedMessage?.metadata || (messages.slice().reverse().find(m => m.sender === 'bot' && m.metadata)?.metadata) || null}
@@ -903,14 +903,14 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           <span className="text-[10px] font-semibold">Ratings</span>
         </button>
         <button
-          onClick={() => setActiveTab('insights')}
+          onClick={() => setActiveTab('devtools')}
           type="button"
           className={`flex flex-col items-center justify-center space-y-1 py-1 px-3 rounded-xl transition cursor-pointer ${
-            activeTab === 'insights' ? 'text-violet-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+            activeTab === 'devtools' ? 'text-violet-400 font-bold' : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          <Cpu className="w-5 h-5" />
-          <span className="text-[10px] font-semibold">Insights</span>
+          <Terminal className="w-5 h-5" />
+          <span className="text-[10px] font-semibold">Dev Tools</span>
         </button>
       </div>
 

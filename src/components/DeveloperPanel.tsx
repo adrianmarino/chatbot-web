@@ -233,9 +233,8 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
       {/* Header */}
       <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 px-4 md:pl-6 shrink-0">
         <div className="flex items-center space-x-2 text-slate-300 font-bold text-sm min-w-0">
-          <Cpu className="w-4 h-4 text-violet-400 shrink-0" />
-          <span className="truncate hidden sm:inline">Research & Engine Insights Console</span>
-          <span className="truncate sm:hidden">Engine Insights</span>
+          <Terminal className="w-4 h-4 text-violet-400 shrink-0" />
+          <span className="truncate">Dev Tools</span>
         </div>
         {!inline && (
           <div className="flex items-center space-x-2 shrink-0">

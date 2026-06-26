@@ -403,7 +403,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
   return (
     <div className="flex-1 flex flex-col bg-slate-950 h-full relative overflow-hidden">
       {/* Feed Header */}
-      <div className="h-16 border-b border-slate-800/80 px-4 md:px-6 grid grid-cols-3 items-center bg-slate-900/40 backdrop-blur-md z-10 shrink-0">
+      <div className="h-16 border-b border-slate-800/80 px-4 md:px-6 flex items-center justify-between bg-slate-900/40 backdrop-blur-md z-10 shrink-0 relative">
         <div className="flex items-center space-x-2 md:space-x-3 text-left min-w-0">
           {/* Sidebar Toggle Button */}
           <button
@@ -429,7 +429,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
         </div>
 
         {/* Beautiful Segmented Tab Switcher (Unified for both Desktop and Mobile) */}
-        <div className="flex bg-slate-950/80 p-0.5 rounded-xl border border-slate-800/80 items-center space-x-1 shrink-0 justify-self-center">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex bg-slate-950/80 p-0.5 rounded-xl border border-slate-800/80 items-center space-x-1 shrink-0">
           <button
             type="button"
             onClick={() => setActiveTab('chat')}
@@ -471,7 +471,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           </button>
         </div>
 
-        <div className="flex items-center space-x-2 shrink-0 justify-self-end">
+        <div className="flex items-center space-x-2 shrink-0">
           {messages.length > 0 && activeTab === 'chat' && (
             <button
               onClick={() => {

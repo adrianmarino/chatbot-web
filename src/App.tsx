@@ -718,9 +718,6 @@ function App() {
               onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
               selectedMessageId={selectedMessageId}
               onSelectMessage={handleSelectMessage}
-              activeMetadata={meta}
-              activeCurl={activeCurl}
-              activeRawResponse={activeRawResponse}
             />
           </div>
         ) : (

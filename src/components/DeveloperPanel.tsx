@@ -89,7 +89,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
     return (
       <button
         onClick={onToggle}
-        className="hidden md:flex fixed right-0 top-1/2 -translate-y-1/2 bg-slate-900 border-l border-y border-slate-800 hover:border-slate-700 text-slate-400 hover:text-violet-400 p-2 rounded-l-2xl shadow-2xl z-40 transition flex flex-col items-center space-y-1 cursor-pointer"
+        className="flex fixed right-0 top-1/2 -translate-y-1/2 bg-slate-900 border-l border-y border-slate-800 hover:border-slate-700 text-slate-400 hover:text-violet-400 p-2 rounded-l-2xl shadow-2xl z-40 transition flex flex-col items-center space-y-1 cursor-pointer"
         title="Open research insights"
       >
         <ChevronLeft className="w-5 h-5 animate-pulse" />
@@ -178,12 +178,8 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
 
   return (
     <div
-      style={(!inline && window.innerWidth >= 768) ? { width: `${width}px` } : {}}
-      className={`bg-slate-900 text-slate-100 flex flex-col overflow-hidden shrink-0 transition-all ${
-        inline 
-          ? "w-full h-full relative" 
-          : "hidden md:flex border-l border-slate-800 h-[100dvh] md:h-screen z-30 shadow-2xl animate-in slide-in-from-right duration-200 relative fixed md:relative inset-y-0 right-0 w-full md:w-auto"
-      }`}
+      style={(window.innerWidth >= 768) ? { width: `${width}px` } : {}}
+      className={`bg-slate-900 text-slate-100 flex flex-col overflow-hidden shrink-0 transition-all border-l border-slate-800 h-[100dvh] md:h-screen z-30 shadow-2xl animate-in slide-in-from-right duration-200 fixed md:relative inset-y-0 right-0 w-full md:w-auto`}
     >
       {/* Draggable Resizer Handler */}
       <div

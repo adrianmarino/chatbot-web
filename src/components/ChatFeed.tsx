@@ -1,9 +1,8 @@
 import React, { useRef, useEffect } from 'react';
-import { Send, Sparkles, Trash2, ArrowRight, Loader2, Bot, User, Menu, RotateCw, CheckCircle2, MessageSquare, Film, Lock, Unlock, Award, Clock, Terminal } from 'lucide-react';
+import { Send, Sparkles, Trash2, ArrowRight, Loader2, Bot, User, Menu, RotateCw, CheckCircle2, MessageSquare, Film, Lock, Unlock, Award, Clock } from 'lucide-react';
 import { api } from '../services/api';
 import type { Recommendation, RecommendationsMetadata } from '../services/api';
 import { MovieGrid } from './MovieGrid';
-import { DeveloperPanel } from './DeveloperPanel';
 
 export interface ChatMessage {
   id: string;
@@ -32,9 +31,6 @@ interface ChatFeedProps {
   onToggleSidebar: () => void;
   selectedMessageId: string | null;
   onSelectMessage: (id: string, metadata: RecommendationsMetadata | null, curlCommand: string, rawApiResponse?: any) => void;
-  activeMetadata: RecommendationsMetadata | null;
-  activeCurl: string;
-  activeRawResponse: any;
 }
 
 const SUGGESTED_PROMPTS = [
@@ -68,7 +64,7 @@ interface QueryHistoryItemProps {
   ratedMovies: Record<string, number>;
   onSendMessage: (text: string) => void;
   onSelectMessage: (id: string, metadata: RecommendationsMetadata | null, curlCommand: string, rawApiResponse?: any) => void;
-  setActiveTab: (tab: 'chat' | 'ratings' | 'history' | 'devtools') => void;
+  setActiveTab: (tab: 'chat' | 'ratings' | 'history') => void;
 }
 
 const QueryHistoryItem: React.FC<QueryHistoryItemProps> = ({
@@ -180,12 +176,9 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
   onToggleSidebar,
   selectedMessageId,
   onSelectMessage,
-  activeMetadata,
-  activeCurl,
-  activeRawResponse,
 }) => {
   const [inputText, setInputText] = React.useState('');
-  const [activeTab, setActiveTab] = React.useState<'chat' | 'ratings' | 'history' | 'devtools'>('chat');
+  const [activeTab, setActiveTab] = React.useState<'chat' | 'ratings' | 'history'>('chat');
   const [seenMovies, setSeenMovies] = React.useState<Recommendation[]>([]);
   const [isLoadingSeen, setIsLoadingSeen] = React.useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -436,8 +429,8 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           </div>
         </div>
 
-        {/* Beautiful Segmented Tab Switcher (Visible only on desktop screens) */}
-        <div className="hidden md:flex bg-slate-950/80 p-0.5 rounded-xl border border-slate-800/80 items-center space-x-1 shrink-0">
+        {/* Beautiful Segmented Tab Switcher (Unified for both Desktop and Mobile) */}
+        <div className="flex bg-slate-950/80 p-0.5 rounded-xl border border-slate-800/80 items-center space-x-1 shrink-0">
           <button
             type="button"
             onClick={() => setActiveTab('chat')}
@@ -448,7 +441,8 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
             }`}
           >
             <MessageSquare className="w-3.5 h-3.5" />
-            <span>Conversational Chat</span>
+            <span className="hidden sm:inline">Conversational Chat</span>
+            <span className="sm:hidden">Chat</span>
           </button>
           <button
             type="button"
@@ -460,7 +454,8 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
-            <span>Query History</span>
+            <span className="hidden sm:inline">Query History</span>
+            <span className="sm:hidden">History</span>
           </button>
           <button
             type="button"
@@ -472,7 +467,8 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
             }`}
           >
             <Film className="w-3.5 h-3.5" />
-            <span>My Ratings</span>
+            <span className="hidden sm:inline">My Ratings</span>
+            <span className="sm:hidden">Ratings</span>
           </button>
         </div>
 
@@ -726,17 +722,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
             </form>
           </div>
         </>
-      ) : activeTab === 'devtools' ? (
-        <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden pb-16">
-          <DeveloperPanel
-            metadata={activeMetadata || (messages.slice().reverse().find(m => m.sender === 'bot' && m.metadata)?.metadata) || null}
-            isOpen={true}
-            onToggle={() => setActiveTab('chat')}
-            curlCommand={activeCurl || (messages.slice().reverse().find(m => m.sender === 'bot' && m.curlCommand)?.curlCommand) || ''}
-            rawApiResponse={activeRawResponse || (messages.slice().reverse().find(m => m.sender === 'bot' && m.rawApiResponse)?.rawApiResponse) || null}
-            inline={true}
-          />
-        </div>
+
       ) : activeTab === 'history' ? (
         <div className="flex-1 overflow-y-auto bg-slate-950/20 pb-24 md:pb-8 px-6 py-8">
           <div className="max-w-4xl mx-auto space-y-6">
@@ -843,49 +829,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
         </div>
       )}
 
-      {/* Mobile Bottom Navigation Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-slate-900/95 border-t border-slate-800/80 flex items-center justify-around z-20 backdrop-blur-md pb-[safe] shadow-2xl">
-        <button
-          onClick={() => setActiveTab('chat')}
-          type="button"
-          className={`flex flex-col items-center justify-center space-y-1 py-1 px-3 rounded-xl transition cursor-pointer ${
-            activeTab === 'chat' ? 'text-violet-400 font-bold' : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <MessageSquare className="w-5 h-5" />
-          <span className="text-[10px] font-semibold">Chat</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('history')}
-          type="button"
-          className={`flex flex-col items-center justify-center space-y-1 py-1 px-3 rounded-xl transition cursor-pointer ${
-            activeTab === 'history' ? 'text-violet-400 font-bold' : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <Clock className="w-5 h-5" />
-          <span className="text-[10px] font-semibold">History</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('ratings')}
-          type="button"
-          className={`flex flex-col items-center justify-center space-y-1 py-1 px-3 rounded-xl transition cursor-pointer ${
-            activeTab === 'ratings' ? 'text-violet-400 font-bold' : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <Film className="w-5 h-5" />
-          <span className="text-[10px] font-semibold">Ratings</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('devtools')}
-          type="button"
-          className={`flex flex-col items-center justify-center space-y-1 py-1 px-3 rounded-xl transition cursor-pointer ${
-            activeTab === 'devtools' ? 'text-violet-400 font-bold' : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <Terminal className="w-5 h-5" />
-          <span className="text-[10px] font-semibold">Dev Tools</span>
-        </button>
-      </div>
+
 
             {/* Global Viewport-Level Draggable/Floating Hover Tooltip (Fixed position, 100% immune to scroll clippings) */}
       {hoverHelp && (

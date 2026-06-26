@@ -697,7 +697,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           </div>
 
           {/* Input Form Footer */}
-          <div className="p-4 pb-20 md:p-6 bg-slate-900/30 border-t border-slate-800/80 backdrop-blur-md z-10 shrink-0">
+          <div className="p-4 md:p-6 bg-slate-900/30 border-t border-slate-800/80 backdrop-blur-md z-10 shrink-0">
             <form onSubmit={handleSubmit} className="max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-7xl mx-auto flex items-center space-x-3">
               <div className="relative flex-1">
                 <input

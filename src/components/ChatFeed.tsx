@@ -417,9 +417,8 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           
           <div className="text-left min-w-0">
             <h2 className="text-sm font-bold text-slate-100 flex items-center space-x-1.5">
-              <Sparkles className="w-4 h-4 text-violet-400 shrink-0" />
+              <Sparkles className="w-4 h-4 text-violet-400 shrink-0 hidden sm:inline" />
               <span className="truncate hidden sm:inline">AI Recommendation Chat</span>
-              <span className="truncate sm:hidden">AI Chat</span>
             </h2>
             {activeProfileName && (
               <p className="text-[11px] text-slate-500 font-medium truncate hidden sm:block">

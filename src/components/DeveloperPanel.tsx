@@ -89,11 +89,14 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
     return (
       <button
         onClick={onToggle}
-        className="flex fixed right-0 top-1/2 -translate-y-1/2 bg-slate-900 border-l border-y border-slate-800 hover:border-slate-700 text-slate-400 hover:text-violet-400 p-2 rounded-l-2xl shadow-2xl z-40 transition flex flex-col items-center space-y-1 cursor-pointer"
+        className="flex fixed right-0 top-1/2 -translate-y-1/2 bg-slate-900 border-l border-y border-slate-800 hover:border-slate-700 text-slate-400 hover:text-violet-400 p-2 rounded-l-2xl shadow-2xl z-40 transition flex flex-col items-center space-y-2 cursor-pointer py-4"
         title="Open dev tools"
       >
         <ChevronLeft className="w-5 h-5 animate-pulse" />
-        <span className="text-[9px] font-bold uppercase tracking-widest writing-mode-vertical -rotate-90">
+        <span
+          style={{ writingMode: 'vertical-rl' }}
+          className="text-[9px] font-bold uppercase tracking-widest whitespace-nowrap rotate-180"
+        >
           Dev Tools
         </span>
       </button>

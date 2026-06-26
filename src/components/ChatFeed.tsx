@@ -817,7 +817,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
               </p>
             </div>
           ) : (
-            <div className="px-6 max-w-4xl mx-auto w-full">
+            <div className="px-6 max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-7xl mx-auto w-full">
               <MovieGrid
                 movies={seenMovies}
                 onRateMovie={onRateMovie}

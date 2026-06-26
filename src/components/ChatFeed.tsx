@@ -555,7 +555,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                     <div key={msg.id} className="space-y-4">
                       {/* Chat Bubble Row */}
                       <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-in fade-in duration-200`}>
-                        <div className={`flex items-start space-x-3 w-full ${isUser ? 'max-w-[85%] flex-row-reverse space-x-reverse' : (hasRecs ? 'max-w-full flex-row' : 'max-w-[85%] flex-row')}`}>
+                        <div className={`flex w-full ${isUser ? 'max-w-[85%] items-start flex-row-reverse space-x-reverse space-x-3' : (hasRecs ? 'max-w-full flex-col space-y-3' : 'max-w-[85%] items-start flex-row space-x-3')}`}>
                           {/* Avatar */}
                           <div
                             className={`p-2.5 rounded-xl border shrink-0 ${

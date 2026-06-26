@@ -558,7 +558,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                         <div className={`flex w-full ${isUser ? 'max-w-[85%] items-start flex-row-reverse space-x-reverse space-x-3' : (hasRecs ? 'max-w-full flex-col space-y-3' : 'max-w-[85%] items-start flex-row space-x-3')}`}>
                           {/* Avatar */}
                           <div
-                            className={`p-2.5 rounded-xl border shrink-0 ${
+                            className={`p-2.5 rounded-xl border shrink-0 self-start ${
                               isUser
                                 ? 'bg-violet-600/15 border-violet-500/20 text-violet-400'
                                 : 'bg-slate-900 border-slate-800 text-slate-300'

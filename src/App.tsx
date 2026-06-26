@@ -250,6 +250,8 @@ function App() {
   
   const [includeMetadata, setIncludeMetadata] = useState(true);
   const [excludeSeen, setExcludeSeen] = useState(true);
+  const [ragShuffle, setRagShuffle] = useState(false);
+  const [cfShuffle, setCfShuffle] = useState(false);
   
   // Hyperparameters
   const [retry, setRetry] = useState(2);
@@ -496,6 +498,7 @@ function App() {
           retry: retry,
           include_metadata: includeMetadata,
           rag: {
+            shuffle: ragShuffle,
             candidates_limit: ragCandidates,
             llm_response_limit: ragLlmResponse,           // Mapped to change prompt text & break cache!
             recommendations_limit: ragRecommendations,    // Truncates response in factory
@@ -504,6 +507,7 @@ function App() {
             min_rating_by_user: ragMinRating,
           },
           collaborative_filtering: {
+            shuffle: cfShuffle,
             candidates_limit: cfCandidates,
             llm_response_limit: cfLlmResponse,           // Mapped to change prompt text & break cache!
             recommendations_limit: cfRecommendations,     // Truncates response in factory
@@ -554,12 +558,16 @@ function App() {
       setActiveRawResponse(response); // Set the active raw API response!
     } catch (err: any) {
       console.error('Error getting recommendations:', err);
+      let text = `⚠️ Error connecting to server: ${err.message || 'Unknown issue'}. Please verify connection to skynet.`;
+      if (err.response?.data?.msg) {
+        text = `⚠️ Error: ${err.response.data.msg}`;
+      }
       setMessages((prev) => [
         ...prev,
         {
           id: `bot-err-${Date.now()}`,
           sender: 'bot',
-          text: `⚠️ Error connecting to server: ${err.message || 'Unknown issue'}. Please verify connection to skynet.`,
+          text,
           timestamp: new Date(),
           status: 'error',
         },
@@ -636,6 +644,10 @@ function App() {
         onToggleMetadata={setIncludeMetadata}
         excludeSeen={excludeSeen}
         onToggleExcludeSeen={setExcludeSeen}
+        ragShuffle={ragShuffle}
+        onToggleRagShuffle={setRagShuffle}
+        cfShuffle={cfShuffle}
+        onToggleCfShuffle={setCfShuffle}
         
         retry={retry}
         onSetRetry={setRetry}

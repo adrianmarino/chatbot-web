@@ -226,7 +226,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
                 </p>
                 <p className="flex justify-between">
                   <span>Avg DB Rating:</span>
-                  <span className="text-slate-200">{movie.metadata.db_item.rating.toFixed(1)} / 5.0</span>
+                  <span className="text-slate-200">{movie.metadata.db_item.rating.toFixed(1)} ★</span>
                 </p>
               </div>
             )}

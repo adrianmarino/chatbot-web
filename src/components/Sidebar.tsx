@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { User, Plus, Settings, Bot, Sparkles, Trash2, Sliders, Database, Users, Info, Save, Download, Upload, ChevronDown, ChevronRight, X } from 'lucide-react';
 import type { UserProfile } from '../services/api';
 
@@ -26,6 +27,8 @@ export interface SavedSettingsProfile {
   cfRankCriterion: string;
   cfNeighborhoodExpansionRatio: number;
   cfMaxExpansionAttempts: number;
+  ragShuffle?: boolean;
+  cfShuffle?: boolean;
 }
 
 interface SidebarProps {
@@ -43,6 +46,10 @@ interface SidebarProps {
   onToggleMetadata: (val: boolean) => void;
   excludeSeen: boolean;
   onToggleExcludeSeen: (val: boolean) => void;
+  ragShuffle: boolean;
+  onToggleRagShuffle: (val: boolean) => void;
+  cfShuffle: boolean;
+  onToggleCfShuffle: (val: boolean) => void;
   
   // Pipeline hyperparameters
   retry: number;
@@ -114,6 +121,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggleMetadata,
   excludeSeen,
   onToggleExcludeSeen,
+  ragShuffle,
+  onToggleRagShuffle,
+  cfShuffle,
+  onToggleCfShuffle,
   
   retry,
   onSetRetry,
@@ -256,6 +267,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       cfRankCriterion,
       cfNeighborhoodExpansionRatio,
       cfMaxExpansionAttempts,
+      ragShuffle,
+      cfShuffle,
     };
     
     if (isUpdate) {
@@ -292,6 +305,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     if (preset.cfRankCriterion !== undefined) onSetCfRankCriterion(preset.cfRankCriterion);
     if (preset.cfNeighborhoodExpansionRatio !== undefined) onSetCfNeighborhoodExpansionRatio(preset.cfNeighborhoodExpansionRatio);
     if (preset.cfMaxExpansionAttempts !== undefined) onSetCfMaxExpansionAttempts(preset.cfMaxExpansionAttempts);
+    if (preset.ragShuffle !== undefined) onToggleRagShuffle(preset.ragShuffle);
+    if (preset.cfShuffle !== undefined) onToggleCfShuffle(preset.cfShuffle);
   };
 
   const handleLoadPreset = (index: number) => {
@@ -734,7 +749,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   max="5"
                   value={retry}
                   onChange={(e) => onSetRetry(Number(e.target.value))}
-                  className="w-full accent-violet-500 h-1 bg-slate-800 rounded-lg cursor-pointer touch-pan-y"
+                  className="w-full accent-violet-500 h-1 bg-slate-800 rounded-lg cursor-pointer touch-pan-y" style={{ touchAction: 'pan-y' }}
                 />
               </div>
             </div>
@@ -778,7 +793,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       disabled={isWarmStart}
                       value={ragCandidates}
                       onChange={(e) => onSetRagCandidates(Number(e.target.value))}
-                      className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y"
+                      className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y" style={{ touchAction: 'pan-y' }}
                     />
                   </div>
 
@@ -803,7 +818,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       disabled={isWarmStart}
                       value={ragLlmResponse}
                       onChange={(e) => onSetRagLlmResponse(Number(e.target.value))}
-                      className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y"
+                      className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y" style={{ touchAction: 'pan-y' }}
                     />
                   </div>
 
@@ -828,7 +843,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       disabled={isWarmStart}
                       value={ragRecommendations}
                       onChange={(e) => onSetRagRecommendations(Number(e.target.value))}
-                      className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y"
+                      className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y" style={{ touchAction: 'pan-y' }}
                     />
                   </div>
 
@@ -852,7 +867,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       disabled={isWarmStart}
                       value={ragAugmentation}
                       onChange={(e) => onSetRagAugmentation(Number(e.target.value))}
-                      className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y"
+                      className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y" style={{ touchAction: 'pan-y' }}
                     />
                   </div>
                   <div className="space-y-1">
@@ -876,7 +891,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       disabled={isWarmStart}
                       value={ragMinRating}
                       onChange={(e) => onSetRagMinRating(Number(e.target.value))}
-                      className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y"
+                      className="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y" style={{ touchAction: 'pan-y' }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-800/40">
+                    <span className="text-xs text-slate-400 flex items-center">
+                      Shuffle Candidates
+                      {renderInfoTrigger(
+                        'Shuffle Candidates (RAG)',
+                        'Si está activo, mezcla aleatoriamente las películas recuperadas de ChromaDB antes de que el LLM realice la selección y ordenación final. Esto ayuda a romper el sesgo de orden y aporta diversidad.',
+                        'Conserva estrictamente el orden de cercanía del RAG.',
+                        'Mezcla los resultados, rompiendo el sesgo estático de los primeros candidatos.'
+                      )}
+                    </span>
+                    <input
+                      type="checkbox"
+                      disabled={isWarmStart}
+                      checked={ragShuffle}
+                      onChange={(e) => onToggleRagShuffle(e.target.checked)}
+                      className="w-4 h-4 rounded text-indigo-600 border-slate-800 bg-slate-950 focus:ring-indigo-500 focus:ring-offset-slate-950 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -940,7 +974,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       disabled={!isWarmStart}
                       value={cfCandidates}
                       onChange={(e) => onSetCfCandidates(Number(e.target.value))}
-                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y"
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y" style={{ touchAction: 'pan-y' }}
                     />
                   </div>
 
@@ -965,7 +999,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       disabled={!isWarmStart}
                       value={cfLlmResponse}
                       onChange={(e) => onSetCfLlmResponse(Number(e.target.value))}
-                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y"
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y" style={{ touchAction: 'pan-y' }}
                     />
                   </div>
 
@@ -990,7 +1024,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       disabled={!isWarmStart}
                       value={cfRecommendations}
                       onChange={(e) => onSetCfRecommendations(Number(e.target.value))}
-                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y"
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y" style={{ touchAction: 'pan-y' }}
                     />
                   </div>
 
@@ -1014,7 +1048,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       disabled={!isWarmStart}
                       value={cfAugmentation}
                       onChange={(e) => onSetCfAugmentation(Number(e.target.value))}
-                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y"
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y" style={{ touchAction: 'pan-y' }}
                     />
                   </div>
 
@@ -1038,7 +1072,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       disabled={!isWarmStart}
                       value={cfKUsers}
                       onChange={(e) => onSetCfKUsers(Number(e.target.value))}
-                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y"
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y" style={{ touchAction: 'pan-y' }}
                     />
                   </div>
 
@@ -1064,7 +1098,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       disabled={!isWarmStart}
                       value={cfMinRating}
                       onChange={(e) => onSetCfMinRating(Number(e.target.value))}
-                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y"
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y" style={{ touchAction: 'pan-y' }}
                     />
                   </div>
 
@@ -1090,7 +1124,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       disabled={!isWarmStart}
                       value={cfMaxItemsByUser}
                       onChange={(e) => onSetCfMaxItemsByUser(Number(e.target.value))}
-                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y"
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y" style={{ touchAction: 'pan-y' }}
                     />
                   </div>
 
@@ -1116,7 +1150,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       disabled={!isWarmStart}
                       value={cfRandomSelectionItemsByUser}
                       onChange={(e) => onSetCfRandomSelectionItemsByUser(Number(e.target.value))}
-                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y"
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y" style={{ touchAction: 'pan-y' }}
                     />
                   </div>
 
@@ -1142,7 +1176,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       disabled={!isWarmStart}
                       value={cfTextQueryLimit}
                       onChange={(e) => onSetCfTextQueryLimit(Number(e.target.value))}
-                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y"
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y" style={{ touchAction: 'pan-y' }}
                     />
                   </div>
 
@@ -1194,7 +1228,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       disabled={!isWarmStart}
                       value={cfNeighborhoodExpansionRatio}
                       onChange={(e) => onSetCfNeighborhoodExpansionRatio(Number(e.target.value))}
-                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y"
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y" style={{ touchAction: 'pan-y' }}
                     />
                   </div>
 
@@ -1220,7 +1254,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       disabled={!isWarmStart}
                       value={cfMaxExpansionAttempts}
                       onChange={(e) => onSetCfMaxExpansionAttempts(Number(e.target.value))}
-                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y"
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed touch-pan-y" style={{ touchAction: 'pan-y' }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-800/40">
+                    <span className="text-xs text-slate-400 flex items-center">
+                      Shuffle Candidates
+                      {renderInfoTrigger(
+                        'Shuffle Candidates (CF)',
+                        'Si está activo, mezcla de forma aleatoria los candidatos recuperados por Filtrado Colaborativo antes de que sean evaluados por el LLM. Útil para aportar serendipia y romper el sesgo determinista.',
+                        'Conserva el orden estricto de recomendación calculado por el algoritmo de filtrado.',
+                        'Aporta mayor variedad y rompe patrones de orden fijos.'
+                      )}
+                    </span>
+                    <input
+                      type="checkbox"
+                      disabled={!isWarmStart}
+                      checked={cfShuffle}
+                      onChange={(e) => onToggleCfShuffle(e.target.checked)}
+                      className="w-4 h-4 rounded text-emerald-500 border-slate-800 bg-slate-950 focus:ring-emerald-500 focus:ring-offset-slate-950 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -1236,7 +1289,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Global Viewport-Level Draggable/Floating Hover Tooltip (Fixed position, 100% immune to scroll clippings) */}
-      {hoverHelp && (
+      {hoverHelp && createPortal(
         <div
           style={calculateTooltipStyles(hoverHelp.rect)}
           className="bg-slate-950/95 border border-slate-800 text-[11px] text-slate-300 rounded-2xl shadow-2xl space-y-3 z-50 pointer-events-none animate-in fade-in zoom-in-95 duration-100 font-sans leading-relaxed backdrop-blur-sm p-4 overflow-y-auto"
@@ -1257,7 +1310,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span className="text-slate-400 font-normal">{hoverHelp.higher}</span>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </aside>
   );

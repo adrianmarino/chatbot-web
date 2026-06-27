@@ -480,7 +480,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                 }
               }}
               type="button"
-              className="flex items-center space-x-1.5 text-xs text-slate-400 hover:text-rose-400 bg-slate-950/40 hover:bg-slate-800/40 border border-slate-800 px-3 py-1.5 rounded-xl transition cursor-pointer"
+              className="flex items-center justify-center text-xs text-slate-400 hover:text-rose-400 bg-slate-950/40 hover:bg-slate-800/40 border border-slate-800 p-2 sm:px-3 sm:py-1.5 sm:space-x-1.5 rounded-xl transition cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Reset History</span>
@@ -495,7 +495,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                 }
               }}
               type="button"
-              className="flex items-center space-x-1.5 text-xs text-slate-400 hover:text-rose-400 bg-slate-950/40 hover:bg-slate-800/40 border border-slate-800 px-3 py-1.5 rounded-xl transition cursor-pointer"
+              className="flex items-center justify-center text-xs text-slate-400 hover:text-rose-400 bg-slate-950/40 hover:bg-slate-800/40 border border-slate-800 p-2 sm:px-3 sm:py-1.5 sm:space-x-1.5 rounded-xl transition cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Reset Ratings</span>

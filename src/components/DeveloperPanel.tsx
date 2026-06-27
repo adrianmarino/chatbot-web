@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Terminal, Code, Cpu, Clock, AlertTriangle, ChevronRight, ChevronLeft, EyeOff, Copy, Check, FileJson, BookOpen, ExternalLink } from 'lucide-react';
 import { API_HOST } from '../services/api';
 import type { RecommendationsMetadata } from '../services/api';
@@ -25,53 +25,7 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
   inline = false,
 }) => {
   const [activeTab, setActiveTab] = useState<'logs' | 'prompt' | 'raw' | 'excluded' | 'curl' | 'json' | 'resources'>('logs');
-  const [width, setWidth] = useState(() => {
-    const saved = localStorage.getItem('chatbot_dev_panel_width');
-    return saved ? parseInt(saved, 10) : 768;
-  }); // Double the previous width (768px instead of 384px) by default
-  const [isDragging, setIsDragging] = useState(false);
-
-  // Save dev panel width choice
-  useEffect(() => {
-    localStorage.setItem('chatbot_dev_panel_width', String(width));
-  }, [width]);
   const [isCopied, setIsCopied] = useState(false);
-
-  const dragRef = useRef<HTMLDivElement>(null);
-
-  // Drag handlers for resizability
-  useEffect(() => {
-    if (!isDragging) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const newWidth = window.innerWidth - e.clientX;
-      // Clamp width between 350px (compact) and 1000px (ultrawide)
-      if (newWidth >= 350 && newWidth <= 1000) {
-        setWidth(newWidth);
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-      document.body.style.cursor = 'default';
-      document.body.style.userSelect = 'auto';
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging]);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
 
   const handleCopyCurl = async () => {
     if (!curlCommand) return;
@@ -181,18 +135,8 @@ export const DeveloperPanel: React.FC<DeveloperPanelProps> = ({
 
   return (
     <div
-      style={(window.innerWidth >= 768) ? { width: `${width}px` } : {}}
-      className={`bg-slate-900 text-slate-100 flex flex-col overflow-hidden shrink-0 transition-all border-l border-slate-800 h-[100dvh] md:h-screen z-30 shadow-2xl animate-in slide-in-from-right duration-200 fixed md:relative inset-y-0 right-0 w-full md:w-auto`}
+      className={`bg-slate-900 text-slate-100 flex flex-col overflow-hidden shrink-0 border-l border-slate-800 h-[100dvh] md:h-screen z-30 shadow-2xl animate-in slide-in-from-right duration-200 fixed inset-y-0 right-0 w-full md:w-[calc(100vw-20rem)]`}
     >
-      {/* Draggable Resizer Handler */}
-      <div
-        ref={dragRef}
-        onMouseDown={handleMouseDown}
-        className={`absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize z-50 transition-all hidden md:block ${
-          isDragging ? 'bg-violet-500 w-2' : 'bg-slate-800/80 hover:bg-violet-500/55 hover:w-2'
-        }`}
-        title="Drag to resize panel"
-      />
 
       {/* Header */}
       <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 px-4 md:pl-6 shrink-0">

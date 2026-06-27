@@ -106,6 +106,67 @@ interface HoverHelp {
   rect: DOMRect;
 }
 
+interface TouchSafeRangeProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+
+const TouchSafeRange: React.FC<TouchSafeRangeProps> = ({
+  value,
+  onChange,
+  className,
+  style,
+  ...props
+}) => {
+  const touchStartRef = React.useRef<{ x: number; y: number } | null>(null);
+  const isVerticalRef = React.useRef<boolean | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLInputElement>) => {
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.pageX, y: touch.pageY };
+    isVerticalRef.current = null;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLInputElement>) => {
+    if (!touchStartRef.current) return;
+    if (isVerticalRef.current === null) {
+      const touch = e.touches[0];
+      const dx = Math.abs(touch.pageX - touchStartRef.current.x);
+      const dy = Math.abs(touch.pageY - touchStartRef.current.y);
+      if (dx > 5 || dy > 5) {
+        isVerticalRef.current = dy > dx;
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchStartRef.current = null;
+    isVerticalRef.current = null;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isVerticalRef.current === true) {
+      e.preventDefault();
+      e.target.value = String(value);
+      return;
+    }
+    if (onChange) {
+      onChange(e);
+    }
+  };
+
+  return (
+    <input
+      type="range"
+      value={value}
+      onChange={handleChange}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      className={className}
+      style={style}
+      {...props}
+    />
+  );
+};
+
 export const Sidebar: React.FC<SidebarProps> = ({
   profiles,
   activeProfile,
@@ -743,8 +804,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </span>
                   <span className="text-violet-400 font-bold">{retry}</span>
                 </div>
-                <input
-                  type="range"
+                <TouchSafeRange
                   min="1"
                   max="5"
                   value={retry}
@@ -785,8 +845,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                       <span className="text-indigo-400 font-bold">{ragCandidates}</span>
                     </div>
-                    <input
-                      type="range"
+                    <TouchSafeRange
                       min="5"
                       max="100"
                       step="5"
@@ -811,8 +870,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                       <span className="text-indigo-400 font-bold">{ragLlmResponse}</span>
                     </div>
-                    <input
-                      type="range"
+                    <TouchSafeRange
                       min="1"
                       max="100"
                       disabled={isWarmStart}
@@ -836,8 +894,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                       <span className="text-indigo-400 font-bold">{ragRecommendations}</span>
                     </div>
-                    <input
-                      type="range"
+                    <TouchSafeRange
                       min="1"
                       max="100"
                       disabled={isWarmStart}
@@ -860,8 +917,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                       <span className="text-indigo-400 font-bold">{ragAugmentation}</span>
                     </div>
-                    <input
-                      type="range"
+                    <TouchSafeRange
                       min="0"
                       max="10"
                       disabled={isWarmStart}
@@ -883,8 +939,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                       <span className="text-indigo-400 font-bold">{ragMinRating.toFixed(1)} ★</span>
                     </div>
-                    <input
-                      type="range"
+                    <TouchSafeRange
                       min="0.0"
                       max="5.0"
                       step="0.5"
@@ -966,8 +1021,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                       <span className="text-emerald-400 font-bold">{cfCandidates}</span>
                     </div>
-                    <input
-                      type="range"
+                    <TouchSafeRange
                       min="5"
                       max="100"
                       step="5"
@@ -992,8 +1046,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                       <span className="text-emerald-400 font-bold">{cfLlmResponse}</span>
                     </div>
-                    <input
-                      type="range"
+                    <TouchSafeRange
                       min="1"
                       max="100"
                       disabled={!isWarmStart}
@@ -1017,8 +1070,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                       <span className="text-emerald-400 font-bold">{cfRecommendations}</span>
                     </div>
-                    <input
-                      type="range"
+                    <TouchSafeRange
                       min="1"
                       max="100"
                       disabled={!isWarmStart}
@@ -1041,8 +1093,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                       <span className="text-emerald-400 font-bold">{cfAugmentation}</span>
                     </div>
-                    <input
-                      type="range"
+                    <TouchSafeRange
                       min="0"
                       max="10"
                       disabled={!isWarmStart}
@@ -1065,8 +1116,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                       <span className="text-emerald-400 font-bold">{cfKUsers} users</span>
                     </div>
-                    <input
-                      type="range"
+                    <TouchSafeRange
                       min="1"
                       max="100"
                       disabled={!isWarmStart}
@@ -1090,8 +1140,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                       <span className="text-emerald-400 font-bold">{cfMinRating.toFixed(1)} ★</span>
                     </div>
-                    <input
-                      type="range"
+                    <TouchSafeRange
                       min="1.0"
                       max="5.0"
                       step="0.5"
@@ -1116,8 +1165,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                       <span className="text-emerald-400 font-bold">{cfMaxItemsByUser}</span>
                     </div>
-                    <input
-                      type="range"
+                    <TouchSafeRange
                       min="1"
                       max="100"
                       step="1"
@@ -1142,8 +1190,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                       <span className="text-emerald-400 font-bold">{(cfRandomSelectionItemsByUser * 100).toFixed(0)}%</span>
                     </div>
-                    <input
-                      type="range"
+                    <TouchSafeRange
                       min="0.1"
                       max="1.0"
                       step="0.1"
@@ -1168,8 +1215,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                       <span className="text-emerald-400 font-bold">{cfTextQueryLimit}</span>
                     </div>
-                    <input
-                      type="range"
+                    <TouchSafeRange
                       min="1000"
                       max="12000"
                       step="1000"
@@ -1220,8 +1266,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                       <span className="text-emerald-400 font-bold">{cfNeighborhoodExpansionRatio.toFixed(1)}x</span>
                     </div>
-                    <input
-                      type="range"
+                    <TouchSafeRange
                       min="1.0"
                       max="3.0"
                       step="0.1"
@@ -1246,8 +1291,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                       <span className="text-emerald-400 font-bold">{cfMaxExpansionAttempts}</span>
                     </div>
-                    <input
-                      type="range"
+                    <TouchSafeRange
                       min="0"
                       max="5"
                       step="1"

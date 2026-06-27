@@ -196,15 +196,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           <div>
             <button
               onClick={() => setShowTechnical(!showTechnical)}
-              onMouseEnter={(e) => showHelp(
-                e,
-                "Métricas Vectoriales de ChromaDB",
-                "Despliega las distancias matemáticas exactas guardadas en la base de datos: ID del catálogo, similitud semántica con tu consulta (`query_sim`), afinidad del título (`title_sim`) y el rating promedio del catálogo.",
-                "Visualización limpia, simplificada y compacta.",
-                "Auditoría matemática completa de la posición y el peso del vector de la película en el espacio multidimensional."
-              )}
-              onMouseLeave={hideHelp}
-              className="text-[10px] font-bold text-slate-500 hover:text-slate-300 flex items-center space-x-1.5 cursor-help"
+              className="text-[10px] font-bold text-slate-500 hover:text-slate-300 flex items-center space-x-1.5 cursor-pointer"
             >
               <Info className="w-3.5 h-3.5" />
               <span>{showTechnical ? 'Hide Technical Metrics' : 'See Similarity Metrics'}</span>

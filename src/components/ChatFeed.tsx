@@ -654,9 +654,9 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
                 {/* Pipeline / Loading State */}
                 {isLoading && (
                   <div className="flex justify-start animate-in fade-in duration-300">
-                    <div className="flex items-start space-x-3 w-full max-w-[85%]">
+                    <div className="flex w-full flex-col space-y-3 max-w-full">
                       {/* pulsing Bot icon */}
-                      <div className="p-2.5 rounded-xl border shrink-0 bg-slate-900 border-slate-800 text-violet-400">
+                      <div className="p-2.5 rounded-xl border shrink-0 bg-slate-900 border-slate-800 text-violet-400 self-start">
                         <Bot className="w-4 h-4 animate-pulse" />
                       </div>
 

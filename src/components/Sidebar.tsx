@@ -758,8 +758,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Database className="w-3.5 h-3.5 text-blue-400" />
                 <span>Saved Presets</span>
               </span>
-              <div className="flex items-center space-x-2">
-                <div className="relative flex-1">
+              <div className="flex flex-col space-y-2">
+                <div className="relative w-full">
                   <select
                     value={selectedPresetIndex}
                     onChange={(e) => {
@@ -769,7 +769,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         handleLoadPreset(Number(val));
                       }
                     }}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-violet-500 transition appearance-none cursor-pointer pr-6"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-violet-500 transition appearance-none cursor-pointer pr-6 truncate"
                   >
                     <option value="">-- Load a Preset --</option>
                     {savedPresets.map((p, idx) => (
@@ -780,52 +780,55 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <span className="text-[9px]">▼</span>
                   </div>
                 </div>
-                {selectedPresetIndex !== '' && (
+                
+                <div className="flex items-center justify-end space-x-2">
+                  {selectedPresetIndex !== '' && (
+                    <button
+                      onClick={() => handleDeletePreset(Number(selectedPresetIndex))}
+                      className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition shrink-0"
+                      title="Delete Preset"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                   <button
-                    onClick={() => handleDeletePreset(Number(selectedPresetIndex))}
-                    className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition shrink-0"
-                    title="Delete Preset"
+                    onClick={handleSavePreset}
+                    className="p-1.5 bg-violet-600/20 hover:bg-violet-600/40 text-violet-300 border border-violet-500/30 rounded-lg transition shrink-0"
+                    title="Save current configuration as new preset"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Save className="w-4 h-4" />
                   </button>
-                )}
-                <button
-                  onClick={handleSavePreset}
-                  className="p-1.5 bg-violet-600/20 hover:bg-violet-600/40 text-violet-300 border border-violet-500/30 rounded-lg transition shrink-0"
-                  title="Save current configuration as new preset"
-                >
-                  <Save className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={handleExportPresets}
-                  className="p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition shrink-0"
-                  title="Export presets to JSON file"
-                  disabled={savedPresets.length === 0}
-                >
-                  <Download className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={handleSharePresets}
-                  className="p-1.5 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded-lg transition shrink-0"
-                  title="Share presets via WhatsApp"
-                  disabled={savedPresets.length === 0}
-                >
-                  <Share2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="p-1.5 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded-lg transition shrink-0"
-                  title="Import presets from JSON file"
-                >
-                  <Upload className="w-4 h-4" />
-                </button>
-                <input
-                  type="file"
-                  accept=".json"
-                  className="hidden"
-                  ref={fileInputRef}
-                  onChange={handleImportPresets}
-                />
+                  <button
+                    onClick={handleExportPresets}
+                    className="p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition shrink-0"
+                    title="Export presets to JSON file"
+                    disabled={savedPresets.length === 0}
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleSharePresets}
+                    className="p-1.5 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded-lg transition shrink-0"
+                    title="Share presets via WhatsApp"
+                    disabled={savedPresets.length === 0}
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-1.5 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded-lg transition shrink-0"
+                    title="Import presets from JSON file"
+                  >
+                    <Upload className="w-4 h-4" />
+                  </button>
+                  <input
+                    type="file"
+                    accept=".json"
+                    className="hidden"
+                    ref={fileInputRef}
+                    onChange={handleImportPresets}
+                  />
+                </div>
               </div>
             </div>
 

@@ -620,7 +620,7 @@ function App() {
         </div>
         <div className="space-y-1 text-center">
           <h2 className="text-lg font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-            Chatbot Web Console
+            Movie Chatbot Console
           </h2>
           <p className="text-xs text-slate-500 font-medium">Connecting to skynet backend services...</p>
         </div>

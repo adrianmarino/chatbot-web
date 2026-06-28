@@ -564,7 +564,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <div className="text-left">
             <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-              Chatbot Web
+              Movie Chatbot
             </h1>
             <p className="text-xs text-slate-400 font-medium tracking-wide">
               HYBRID REC-SYS CONSOLE

@@ -1438,11 +1438,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 onClick={async () => {
                   try {
-                    await navigator.clipboard.writeText(shareUrl);
+                    if (navigator.clipboard && window.isSecureContext) {
+                      await navigator.clipboard.writeText(shareUrl);
+                    } else {
+                      const textArea = document.createElement("textarea");
+                      textArea.value = shareUrl;
+                      textArea.style.position = "fixed";
+                      textArea.style.left = "-999999px";
+                      document.body.appendChild(textArea);
+                      textArea.focus();
+                      textArea.select();
+                      const successful = document.execCommand('copy');
+                      textArea.remove();
+                      if (!successful) throw new Error("Fallback copy failed");
+                    }
                     setIsCopied(true);
                     setTimeout(() => setIsCopied(false), 2000);
                   } catch (e) {
-                    alert("Failed to copy");
+                    alert("Tu navegador bloquea el copiado automático. Por favor, selecciona el enlace de abajo y cópialo manualmente.");
                   }
                 }}
                 className="w-full flex items-center justify-between p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-violet-500/50 transition group"
@@ -1458,14 +1471,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   const waText = `*Presets de Chatbot Web* 🤖✨\n\nAbre este enlace mágico para importar mi configuración automáticamente:\n\n${shareUrl}`;
                   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
                   
-                  // Use native intent protocol on mobile to prevent web browser URL length limits
                   const waUrl = isMobile 
                     ? `whatsapp://send?text=${encodeURIComponent(waText)}`
                     : `https://web.whatsapp.com/send?text=${encodeURIComponent(waText)}`;
                   
-                  const newWindow = window.open(waUrl, '_blank');
-                  if (!newWindow) {
-                    alert("Por favor habilita las ventanas emergentes (popups) para compartir, o usa el botón de Copiar Enlace.");
+                  if (isMobile) {
+                    // Mobile intent requires location.href to bypass popup blockers reliably
+                    window.location.href = waUrl;
+                  } else {
+                    const newWindow = window.open(waUrl, '_blank');
+                    if (!newWindow) {
+                      alert("Por favor habilita las ventanas emergentes (popups) para compartir, o usa el botón de Copiar Enlace.");
+                    }
                   }
                 }}
                 className="w-full flex items-center justify-between p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl hover:bg-emerald-500/20 transition group"
@@ -1475,6 +1492,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span className="font-medium text-sm">Enviar por WhatsApp</span>
                 </div>
               </button>
+              
+              {/* Fallback Text Input */}
+              <div className="pt-2">
+                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">O copia manualmente:</span>
+                <input 
+                  type="text" 
+                  readOnly 
+                  value={shareUrl} 
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                  className="w-full bg-black/40 border border-slate-800 rounded-lg p-2 text-xs text-slate-400 focus:outline-none focus:border-slate-600"
+                />
+              </div>
             </div>
           </div>
         </div>

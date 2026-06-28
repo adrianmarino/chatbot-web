@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { User, Plus, Settings, Bot, Sparkles, Trash2, Sliders, Database, Users, Info, Save, Download, Upload, ChevronDown, ChevronRight, X } from 'lucide-react';
+import { User, Plus, Settings, Bot, Sparkles, Trash2, Sliders, Database, Users, Info, Save, Download, Upload, Share2, ChevronDown, ChevronRight, X } from 'lucide-react';
 import type { UserProfile } from '../services/api';
 
 
@@ -239,6 +239,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // Load presets when profile changes
   useEffect(() => {
     if (activeProfile?.email) {
+      // 1. Process Magic Link URL import if present
+      const params = new URLSearchParams(window.location.search);
+      const importData = params.get('import_presets');
+      if (importData) {
+        try {
+          const decoded = decodeURIComponent(escape(atob(importData)));
+          const imported = JSON.parse(decoded) as SavedSettingsProfile[];
+          if (Array.isArray(imported) && imported.length > 0) {
+            const currentStored = localStorage.getItem(`chatbot_presets_${activeProfile.email}`);
+            let existing: SavedSettingsProfile[] = [];
+            if (currentStored) {
+                existing = JSON.parse(currentStored);
+            }
+            const overwrite = confirm('✨ Shared presets detected in URL!\n\nDo you want to completely overwrite your existing presets? (Cancel to append them instead)');
+            
+            const newPresets = overwrite ? imported : [...existing, ...imported];
+            localStorage.setItem(`chatbot_presets_${activeProfile.email}`, JSON.stringify(newPresets));
+            
+            // Clean up URL to prevent re-importing on refresh
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.replaceState({path: newUrl}, '', newUrl);
+            
+            setTimeout(() => alert('Presets imported successfully from magic link!'), 100);
+          }
+        } catch (e) {
+          console.error('Failed to import presets from URL', e);
+          alert('Failed to import presets from URL. The link might be invalid or corrupted.');
+        }
+      }
+
+      // 2. Normal load from local storage
       const stored = localStorage.getItem(`chatbot_presets_${activeProfile.email}`);
       let parsed: SavedSettingsProfile[] = [];
       if (stored) {
@@ -395,6 +426,51 @@ export const Sidebar: React.FC<SidebarProps> = ({
     link.download = `chatbot-presets-${activeProfile?.email || 'export'}.json`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleSharePresets = async () => {
+    if (savedPresets.length === 0) return;
+    const dataStr = JSON.stringify(savedPresets);
+    
+    // Create Magic Link
+    const encoded = btoa(unescape(encodeURIComponent(dataStr)));
+    const baseUrl = window.location.origin + window.location.pathname;
+    const importUrl = `${baseUrl}?import_presets=${encoded}`;
+    
+    const fileName = `chatbot-presets-${activeProfile?.email || 'export'}.json`;
+
+    // 1. Try Native Web Share (Ideal for Mobile WhatsApp)
+    if (navigator.share) {
+      try {
+        const file = new File([JSON.stringify(savedPresets, null, 2)], fileName, { type: 'application/json' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'Chatbot Web Presets',
+            text: `Aquí tienes mis configuraciones. Importa el archivo adjunto o abre este enlace mágico:\n\n${importUrl}`
+          });
+          return;
+        } else {
+          // Fallback if browser supports share but not files
+          await navigator.share({
+            title: 'Chatbot Web Presets',
+            text: `Aquí tienes mis configuraciones. Abre este enlace para importarlas automáticamente:\n\n${importUrl}`
+          });
+          return;
+        }
+      } catch (err) {
+        console.error('Native share failed or was cancelled:', err);
+      }
+    }
+
+    // 2. Fallback WhatsApp Direct Link (Ideal for Desktop)
+    try {
+      const waText = `*Presets de Chatbot Web* 🤖✨\n\nAbre este enlace mágico para importar mi configuración automáticamente:\n${importUrl}`;
+      const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(waText)}`;
+      window.open(waUrl, '_blank');
+    } catch (err) {
+      alert('Could not open WhatsApp.');
+    }
   };
 
   const handleImportPresets = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -727,6 +803,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   disabled={savedPresets.length === 0}
                 >
                   <Download className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleSharePresets}
+                  className="p-1.5 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded-lg transition shrink-0"
+                  title="Share presets via WhatsApp"
+                  disabled={savedPresets.length === 0}
+                >
+                  <Share2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => fileInputRef.current?.click()}

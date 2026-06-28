@@ -409,7 +409,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           <button
             onClick={onToggleSidebar}
             type="button"
-            className="p-1.5 text-slate-400 hover:text-violet-400 hover:bg-slate-855 rounded-lg transition mr-0.5 md:mr-1 animate-in cursor-pointer"
+            className="md:hidden p-1.5 text-slate-400 hover:text-violet-400 hover:bg-slate-855 rounded-lg transition mr-0.5 animate-in cursor-pointer"
             title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
             <Menu className="w-5 h-5" />

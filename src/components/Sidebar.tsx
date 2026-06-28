@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { User, Plus, Settings, Bot, Sparkles, Trash2, Sliders, Database, Users, Info, Save, Download, Upload, Share2, ChevronDown, ChevronRight, X } from 'lucide-react';
+import { User, Plus, Settings, Bot, Sparkles, Trash2, Sliders, Database, Users, Info, Save, Download, Upload, Share2, Copy, Check, MessageCircle, ChevronDown, ChevronRight, X } from 'lucide-react';
 import type { UserProfile } from '../services/api';
 
 
@@ -235,6 +235,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [savedPresets, setSavedPresets] = useState<SavedSettingsProfile[]>([]);
   const [selectedPresetIndex, setSelectedPresetIndex] = useState<number | ''>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+  const [isCopied, setIsCopied] = useState(false);
 
   // Load presets when profile changes
   useEffect(() => {
@@ -428,7 +431,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const handleSharePresets = async () => {
+  const handleSharePresets = () => {
     if (savedPresets.length === 0) return;
     const dataStr = JSON.stringify(savedPresets);
     
@@ -437,40 +440,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     const baseUrl = window.location.origin + window.location.pathname;
     const importUrl = `${baseUrl}?import_presets=${encoded}`;
     
-    const fileName = `chatbot-presets-${activeProfile?.email || 'export'}.json`;
-
-    // 1. Try Native Web Share (Ideal for Mobile WhatsApp)
-    if (navigator.share) {
-      try {
-        const file = new File([JSON.stringify(savedPresets, null, 2)], fileName, { type: 'application/json' });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: 'Chatbot Web Presets',
-            text: `Aquí tienes mis configuraciones. Importa el archivo adjunto o abre este enlace mágico:\n\n${importUrl}`
-          });
-          return;
-        } else {
-          // Fallback if browser supports share but not files
-          await navigator.share({
-            title: 'Chatbot Web Presets',
-            text: `Aquí tienes mis configuraciones. Abre este enlace para importarlas automáticamente:\n\n${importUrl}`
-          });
-          return;
-        }
-      } catch (err) {
-        console.error('Native share failed or was cancelled:', err);
-      }
-    }
-
-    // 2. Fallback WhatsApp Direct Link (Ideal for Desktop)
-    try {
-      const waText = `*Presets de Chatbot Web* 🤖✨\n\nAbre este enlace mágico para importar mi configuración automáticamente:\n${importUrl}`;
-      const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(waText)}`;
-      window.open(waUrl, '_blank');
-    } catch (err) {
-      alert('Could not open WhatsApp.');
-    }
+    setShareUrl(importUrl);
+    setIsShareModalOpen(true);
   };
 
   const handleImportPresets = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1443,6 +1414,70 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>,
         document.body
+      )}
+      {/* Custom Share Modal */}
+      {isShareModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setIsShareModalOpen(false)}
+              className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <Share2 className="w-5 h-5 text-violet-400" />
+              Compartir Presets
+            </h3>
+            <p className="text-xs text-slate-400 mb-6">
+              Elige cómo compartir tu configuración. Quien abra este Enlace Mágico importará tus presets automáticamente.
+            </p>
+
+            <div className="space-y-3">
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(shareUrl);
+                    setIsCopied(true);
+                    setTimeout(() => setIsCopied(false), 2000);
+                  } catch (e) {
+                    alert("Failed to copy");
+                  }
+                }}
+                className="w-full flex items-center justify-between p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-violet-500/50 transition group"
+              >
+                <div className="flex items-center space-x-3 text-slate-300">
+                  {isCopied ? <Check className="w-5 h-5 text-emerald-400" /> : <Copy className="w-5 h-5 text-slate-400 group-hover:text-violet-400" />}
+                  <span className="font-medium text-sm">{isCopied ? '¡Copiado al portapapeles!' : 'Copiar Enlace Mágico'}</span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  const waText = `*Presets de Chatbot Web* 🤖✨\n\nAbre este enlace mágico para importar mi configuración automáticamente:\n\n${shareUrl}`;
+                  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                  
+                  // Use native intent protocol on mobile to prevent web browser URL length limits
+                  const waUrl = isMobile 
+                    ? `whatsapp://send?text=${encodeURIComponent(waText)}`
+                    : `https://web.whatsapp.com/send?text=${encodeURIComponent(waText)}`;
+                  
+                  const newWindow = window.open(waUrl, '_blank');
+                  if (!newWindow) {
+                    alert("Por favor habilita las ventanas emergentes (popups) para compartir, o usa el botón de Copiar Enlace.");
+                  }
+                }}
+                className="w-full flex items-center justify-between p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl hover:bg-emerald-500/20 transition group"
+              >
+                <div className="flex items-center space-x-3 text-emerald-400">
+                  <MessageCircle className="w-5 h-5" />
+                  <span className="font-medium text-sm">Enviar por WhatsApp</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </aside>
   );

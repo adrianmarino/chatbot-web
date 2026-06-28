@@ -415,14 +415,10 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
             <Menu className="w-5 h-5" />
           </button>
           
-          <div className="text-left min-w-0">
-            <h2 className="text-sm font-bold text-slate-100 flex items-center space-x-1.5">
-              <Sparkles className="w-4 h-4 text-violet-400 shrink-0 hidden sm:inline" />
-              <span className="truncate hidden sm:inline">AI Recommendation Chat</span>
-            </h2>
+          <div className="text-left min-w-0 flex items-center">
             {activeProfileName && (
-              <p className="text-[11px] text-slate-500 font-medium truncate hidden sm:block">
-                Consulting as <span className="text-violet-400 font-semibold">{activeProfileName}</span>
+              <p className="text-xs text-slate-400 font-medium truncate hidden sm:block">
+                Consulting as <span className="text-violet-400 font-bold text-sm ml-1">{activeProfileName}</span>
               </p>
             )}
           </div>

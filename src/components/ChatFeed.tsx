@@ -720,7 +720,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
 
       ) : activeTab === 'history' ? (
         <div className="flex-1 overflow-y-auto bg-slate-950/20 pb-24 md:pb-8 px-6 py-8">
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-7xl mx-auto w-full space-y-6">
             
             {/* Header / Intro */}
             <div className="text-left space-y-1">

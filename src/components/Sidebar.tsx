@@ -438,7 +438,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     // Create Magic Link
     const encoded = btoa(unescape(encodeURIComponent(dataStr)));
     const baseUrl = window.location.origin + window.location.pathname;
-    const importUrl = `${baseUrl}?import_presets=${encoded}`;
+    const importUrl = `${baseUrl}?import_presets=${encodeURIComponent(encoded)}`;
     
     setShareUrl(importUrl);
     setIsShareModalOpen(true);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { User, Plus, Settings, Bot, Sparkles, Trash2, Sliders, Database, Users, Info, Save, Download, Upload, Share2, Copy, Check, MessageCircle, ChevronDown, ChevronRight, X } from 'lucide-react';
+import { User, Plus, Settings, Bot, Sparkles, Trash2, Sliders, Database, Users, Info, Save, Download, Upload, Share2, Copy, Check, ChevronDown, ChevronRight, X } from 'lucide-react';
 import type { UserProfile } from '../services/api';
 
 
@@ -1466,33 +1466,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </button>
 
-              <button
-                onClick={() => {
-                  const waText = `*Presets de Chatbot Web* 🤖✨\n\nAbre este enlace mágico para importar mi configuración automáticamente:\n\n${shareUrl}`;
-                  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-                  
-                  const waUrl = isMobile 
-                    ? `whatsapp://send?text=${encodeURIComponent(waText)}`
-                    : `https://web.whatsapp.com/send?text=${encodeURIComponent(waText)}`;
-                  
-                  if (isMobile) {
-                    // Mobile intent requires location.href to bypass popup blockers reliably
-                    window.location.href = waUrl;
-                  } else {
-                    const newWindow = window.open(waUrl, '_blank');
-                    if (!newWindow) {
-                      alert("Por favor habilita las ventanas emergentes (popups) para compartir, o usa el botón de Copiar Enlace.");
-                    }
-                  }
-                }}
-                className="w-full flex items-center justify-between p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl hover:bg-emerald-500/20 transition group"
-              >
-                <div className="flex items-center space-x-3 text-emerald-400">
-                  <MessageCircle className="w-5 h-5" />
-                  <span className="font-medium text-sm">Enviar por WhatsApp</span>
-                </div>
-              </button>
-              
               {/* Fallback Text Input */}
               <div className="pt-2">
                 <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">O copia manualmente:</span>
